@@ -113,7 +113,7 @@ const INITIAL_DEMO_NOTIFICATIONS: InAppNotification[] = [
     deadlineId: "dl-1",
     reminderId: "rem-1",
     title: "Reminder: [CS101] Dynamic Programming Problem Set 4",
-    body: "Due tonight at 23:59. Priority: high. Estimated remaining effort: 1.6 hours.",
+    body: "Due tonight at 23:59. Priority: high.",
     channel: "push",
     status: "queued",
     sentAt: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
@@ -125,7 +125,7 @@ const INITIAL_DEMO_NOTIFICATIONS: InAppNotification[] = [
     deadlineId: "dl-2",
     reminderId: "rem-2",
     title: "Upcoming Exam: [MATH201] Midterm Exam: Vector Spaces",
-    body: "Exam is in 3 days. High Risk Tier detected. Recommended daily prep: 2.5 hours.",
+    body: "Exam is in 3 days. High priority countdown alert.",
     channel: "push",
     status: "queued",
     sentAt: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3 hours ago

@@ -83,6 +83,6 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
 
     // Check Risk and Subject charts
     await expect(page.getByText(/Workload Risk Distribution/i)).toBeVisible();
-    await expect(page.getByText(/Course Effort & Completion Breakdown/i)).toBeVisible();
+    await expect(page.getByText(/Coursework & Completion Breakdown/i)).toBeVisible();
   });
 });

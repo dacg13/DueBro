@@ -111,11 +111,11 @@ export function MonthCalendarGrid({
                 {/* Heavy Workload Heat Indicator */}
                 {isHeavyWorkload && isCurMonth && (
                   <span
-                    title={`${dayDeadlines.length} tasks totaling ${totalEffort.toFixed(1)}h effort`}
+                    title={`${dayDeadlines.length} deadlines scheduled`}
                     className="flex items-center gap-0.5 text-[10px] font-bold text-warning tabular-nums"
                   >
                     <Flame className="w-3 h-3" />
-                    <span>{totalEffort.toFixed(1)}h</span>
+                    <span>{dayDeadlines.length}</span>
                   </span>
                 )}
               </div>

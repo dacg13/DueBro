@@ -189,11 +189,11 @@ export function calculateDeadlineRisk(
     tier = "safe";
   }
 
-  let explanation = `${effortRemainingHours}h required across ${availableCapacityHours}h available capacity.`;
+  let explanation = `${daysRemaining} days remaining until due date.`;
   if (tier === "critical") {
-    explanation = `Required effort (${effortRemainingHours}h) exceeds available capacity (${availableCapacityHours}h) before due date!`;
+    explanation = `High urgency: due within ${daysRemaining} days!`;
   } else if (examMult > 1.0) {
-    explanation += ` Scaled up ${examMult}x due to upcoming exam date.`;
+    explanation = `Upcoming exam within ${daysRemaining} days.`;
   }
 
   return {

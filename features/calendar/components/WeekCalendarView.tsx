@@ -83,13 +83,13 @@ export function WeekCalendarView({
                   <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     {format(day, "EEE")}
                   </span>
-                  {isHeavy && (
+                  {dayDeadlines.length >= 3 && (
                     <span
-                      title="Heavy study load (>4h scheduled)"
+                      title={`${dayDeadlines.length} deadlines scheduled`}
                       className="flex items-center gap-0.5 text-[10px] font-bold text-warning tabular-nums"
                     >
                       <Flame className="w-3 h-3" />
-                      <span>{totalEffort.toFixed(1)}h</span>
+                      <span>{dayDeadlines.length}</span>
                     </span>
                   )}
                 </div>
@@ -174,7 +174,7 @@ export function WeekCalendarView({
                             {dl.dueTime}
                           </span>
                         ) : (
-                          <span className="tabular-nums">{dl.estimatedEffortHours ?? 2}h effort</span>
+                          <span>All day</span>
                         )}
 
                         {/* Accessible Reschedule Trigger (WCAG 2.2 Dragging Alternative) */}
