@@ -1,22 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+// Empty subscribe for client-only mounting detection without effect setState
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function AppSplashScreen() {
-  const [mounted, setMounted] = useState(false);
+  const isClient = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [visible, setVisible] = useState(true);
   const [isIgnited, setIsIgnited] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     // Check session storage so it displays once per app launch session
     const hasSeenSplash = sessionStorage.getItem("duebro_splash_seen");
     if (hasSeenSplash) {
-      setVisible(false);
-      return;
+      const timer = setTimeout(() => setVisible(false), 0);
+      return () => clearTimeout(timer);
     }
 
     // Step 1: Ignite the inner checkmark light
@@ -42,7 +46,7 @@ export function AppSplashScreen() {
     };
   }, []);
 
-  if (!mounted || !visible) return null;
+  if (!isClient || !visible) return null;
 
   return (
     <div
