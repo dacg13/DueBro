@@ -59,6 +59,7 @@ export function DeadlineFilterBar({
           <ArrowUpDown className="w-3.5 h-3.5 text-text-tertiary" />
           <select
             value={sortBy}
+            aria-label="Sort deadlines by"
             onChange={(e) => onSortChange(e.target.value as "dueDate" | "priority" | "title")}
             className="bg-transparent text-xs text-text-primary focus:outline-none cursor-pointer"
           >

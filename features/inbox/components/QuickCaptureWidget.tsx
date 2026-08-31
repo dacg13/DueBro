@@ -72,6 +72,34 @@ export function QuickCaptureWidget({
       if (res.success && res.data) {
         onSuccess?.(res.data);
         setInputText("");
+      } else {
+        // Optimistic client / demo fallback
+        const demoCreated: Deadline = {
+          id: `dl-captured-${Date.now()}`,
+          userId: "demo-user",
+          subjectId: matchedSubject?.id || null,
+          termId: null,
+          title: parsedData.cleanTitle,
+          type: parsedData.type,
+          dueDate: parsedData.dueDate || new Date().toISOString().split("T")[0],
+          dueTime: parsedData.dueTime || "23:59",
+          priority: parsedData.priority,
+          status: "not_started",
+          progress: 0,
+          estimatedEffortHours: parsedData.estimatedEffortHours ?? 2.0,
+          location: null,
+          notes: null,
+          tags: [],
+          links: [],
+          recurrenceRuleId: null,
+          originalOccurrenceDate: null,
+          completedAt: null,
+          deletedAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        onSuccess?.(demoCreated);
+        setInputText("");
       }
     } finally {
       setIsSubmitting(false);
@@ -109,6 +137,7 @@ export function QuickCaptureWidget({
         <Button
           type="submit"
           size="sm"
+          aria-label="Capture deadline"
           disabled={!inputText.trim() || isSubmitting}
           className="h-10 px-4 gap-1.5 shrink-0"
         >

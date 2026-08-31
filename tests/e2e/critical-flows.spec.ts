@@ -8,7 +8,7 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await page.waitForLoadState("domcontentloaded");
 
     // Check Quick Capture input exists
-    const input = page.getByPlaceholder(/Quick capture a deadline/i);
+    const input = page.getByPlaceholder(/Read biology chapter/i);
     await expect(input).toBeVisible();
 
     // Type bare-text task with NLP hints
@@ -19,8 +19,8 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await expect(page.getByText(/2h effort/i)).toBeVisible();
     await expect(page.getByText(/Critical/i)).toBeVisible();
 
-    // Submit via Capture button
-    await page.getByRole("button", { name: /Capture/i }).click();
+    // Submit via Capture submit button
+    await page.locator('button[type="submit"]').click();
 
     // Verify task is added to triage list
     await expect(page.getByText(/Read operating systems chapter 5/i)).toBeVisible();
@@ -32,18 +32,18 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await page.goto("/today");
     await page.waitForLoadState("domcontentloaded");
 
-    // Check Daily Capacity meter is visible
-    await expect(page.getByText(/Daily Study Capacity/i)).toBeVisible();
+    // Check Study Load meter is visible
+    await expect(page.getByText(/Today's Study Load/i)).toBeVisible();
 
     // Check Today's Focus section
-    await expect(page.getByText(/Today's Recommended Focus/i)).toBeVisible();
+    await expect(page.getByText(/Recommended Focus/i)).toBeVisible();
 
     // Verify at least one task card exists with remaining effort
     const logBtn = page.getByRole("button", { name: /Log Study Time/i }).first();
     if (await logBtn.isVisible()) {
       await logBtn.click();
-      // Quick log modal should open
-      await expect(page.getByText(/Log Study Effort/i)).toBeVisible();
+      // Quick log modal should open with title "Log Study Progress"
+      await expect(page.getByText(/Log Study Progress/i).first()).toBeVisible();
       await page.getByRole("button", { name: /Cancel/i }).click();
     }
   });
@@ -58,12 +58,12 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await expect(page.getByText(/Month View/i)).toBeVisible();
 
     // Switch to Week View
-    await page.getByRole("button", { name: "Week" }).click();
+    await page.getByRole("button", { name: "Week", exact: true }).click();
     await expect(page.getByText(/Week View/i)).toBeVisible();
 
     // Verify 7-day columns are rendered
-    await expect(page.getByText("Mon")).toBeVisible();
-    await expect(page.getByText("Sun")).toBeVisible();
+    await expect(page.getByText("Mon", { exact: true })).toBeVisible();
+    await expect(page.getByText("Sun", { exact: true })).toBeVisible();
   });
 
   test("Flow 4: Workload Capacity Tuner real-time adjustment", async ({
@@ -88,7 +88,7 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
 
     // Check stat cards
     await expect(page.getByText(/Overall Completion Rate/i)).toBeVisible();
-    await expect(page.getByText(/On-Time Punctuality/i)).toBeVisible();
+    await expect(page.getByText("On-Time Punctuality", { exact: true })).toBeVisible();
     await expect(page.getByText(/Remaining Study Effort/i)).toBeVisible();
 
     // Check Risk and Subject charts

@@ -56,6 +56,8 @@ export function CapacityTuner({
           <div className="pt-1">
             <input
               type="range"
+              id="weekday-capacity-slider"
+              aria-label="Weekday maximum study load in hours"
               min={weekdayMin}
               max={weekdayMax}
               step="0.5"
@@ -77,10 +79,10 @@ export function CapacityTuner({
         {/* Weekend Slider */}
         <div className="space-y-2 p-3.5 rounded-xl bg-bg-elevated/60 border border-border-default hover:border-border-hover transition-colors">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-text-secondary flex items-center gap-1.5">
+            <label htmlFor="weekend-capacity-slider" className="font-semibold text-text-secondary flex items-center gap-1.5 cursor-pointer">
               <Clock className="w-3.5 h-3.5 text-accent" />
               Weekend Max Study Load
-            </span>
+            </label>
             <span className="font-bold text-accent tabular-nums bg-accent-subtle px-2 py-0.5 rounded-md border border-accent/20">
               {weekendHours.toFixed(1)}h / day
             </span>
@@ -88,6 +90,8 @@ export function CapacityTuner({
           <div className="pt-1">
             <input
               type="range"
+              id="weekend-capacity-slider"
+              aria-label="Weekend maximum study load in hours"
               min={weekendMin}
               max={weekendMax}
               step="0.5"
