@@ -33,4 +33,8 @@ jobs:
         run: npm test
 
       - name: Build Next.js application
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder-project.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/duebro
         run: npm run build
