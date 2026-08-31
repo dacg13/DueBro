@@ -268,19 +268,19 @@ export default function CalendarPage() {
   }, [currentDate, viewMode]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Calendar Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            <h1 className="text-2xl font-bold tracking-tight text-signal-white">
               {headerDateLabel}
             </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-void-850 text-signal-white border border-white/10">
               {viewMode === "month" ? "Month View" : "Week View"}
             </span>
           </div>
-          <p className="text-xs text-text-secondary mt-0.5">
+          <p className="text-xs text-mist-200 mt-0.5">
             Visualize coursework pacing, upcoming exam windows, and daily workload density.
           </p>
         </div>
