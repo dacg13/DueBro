@@ -71,7 +71,7 @@ export default function Home() {
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <Link
           href="/today"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors shadow-sm"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-signal-white text-void-950 font-semibold hover:bg-signal-white/95 transition-all shadow-[0_0_24px_rgba(250,250,252,0.25)]"
         >
           Open Today Dashboard
           <ArrowRight className="w-4 h-4" />

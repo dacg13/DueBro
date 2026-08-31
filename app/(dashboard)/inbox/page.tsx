@@ -179,14 +179,14 @@ export default function InboxPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">Inbox &amp; Quick Capture</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-signal-white">Inbox &amp; Quick Capture</h1>
             {untriagedCount > 0 && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-accent text-white">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-signal-white text-void-950 shadow-[0_0_12px_rgba(250,250,252,0.3)]">
                 {untriagedCount} untriaged
               </span>
             )}
           </div>
-          <p className="text-xs text-text-secondary mt-0.5">
+          <p className="text-xs text-mist-200 mt-0.5">
             Rapidly capture ideas and assignments with zero required fields, then triage in 1 tap.
           </p>
         </div>
@@ -303,8 +303,10 @@ export default function InboxPage() {
                   <div className="flex items-start gap-3.5 min-w-0">
                     <div
                       className={cn(
-                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5",
-                        isUnread ? "bg-accent text-white" : "bg-bg-elevated text-text-tertiary"
+                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 transition-all",
+                        isUnread
+                          ? "bg-signal-white text-void-950 shadow-[0_0_16px_rgba(250,250,252,0.35)]"
+                          : "bg-void-900/60 text-mist-200 border border-white/8"
                       )}
                     >
                       <Bell className="w-4 h-4" />

@@ -152,7 +152,7 @@ export function AcademicTermsDialog({
                   <div className="flex items-center gap-2">
                     <h4 className="text-sm font-semibold text-text-primary truncate">{term.name}</h4>
                     {term.isCurrent && (
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-accent text-white">
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-signal-white text-void-950 shadow-[0_0_8px_rgba(250,250,252,0.4)]">
                         Active
                       </span>
                     )}

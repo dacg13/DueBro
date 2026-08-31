@@ -183,10 +183,10 @@ export function InboxTriageCard({
             type="button"
             onClick={() => handleAssignDate(todayStr)}
             className={cn(
-              "px-2 py-0.5 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer",
+              "px-2.5 py-0.5 rounded-lg text-[11px] transition-all cursor-pointer",
               deadline.dueDate === todayStr
-                ? "bg-accent text-white border-accent font-bold"
-                : "bg-bg-elevated text-text-secondary hover:text-text-primary border-border-default"
+                ? "bg-signal-white text-void-950 font-bold border border-signal-white shadow-[0_0_12px_rgba(250,250,252,0.3)]"
+                : "bg-void-900/60 text-mist-200 hover:text-signal-white border border-white/8 hover:border-white/20"
             )}
           >
             Today
@@ -195,10 +195,10 @@ export function InboxTriageCard({
             type="button"
             onClick={() => handleAssignDate(tomorrowStr)}
             className={cn(
-              "px-2 py-0.5 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer",
+              "px-2.5 py-0.5 rounded-lg text-[11px] transition-all cursor-pointer",
               deadline.dueDate === tomorrowStr
-                ? "bg-accent text-white border-accent font-bold"
-                : "bg-bg-elevated text-text-secondary hover:text-text-primary border-border-default"
+                ? "bg-signal-white text-void-950 font-bold border border-signal-white shadow-[0_0_12px_rgba(250,250,252,0.3)]"
+                : "bg-void-900/60 text-mist-200 hover:text-signal-white border border-white/8 hover:border-white/20"
             )}
           >
             Tomorrow
@@ -207,10 +207,10 @@ export function InboxTriageCard({
             type="button"
             onClick={() => handleAssignDate(fridayStr)}
             className={cn(
-              "px-2 py-0.5 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer",
+              "px-2.5 py-0.5 rounded-lg text-[11px] transition-all cursor-pointer",
               deadline.dueDate === fridayStr
-                ? "bg-accent text-white border-accent font-bold"
-                : "bg-bg-elevated text-text-secondary hover:text-text-primary border-border-default"
+                ? "bg-signal-white text-void-950 font-bold border border-signal-white shadow-[0_0_12px_rgba(250,250,252,0.3)]"
+                : "bg-void-900/60 text-mist-200 hover:text-signal-white border border-white/8 hover:border-white/20"
             )}
           >
             Friday

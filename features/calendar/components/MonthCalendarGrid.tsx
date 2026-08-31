@@ -100,8 +100,8 @@ export function MonthCalendarGrid({
                   className={cn(
                     "text-xs font-medium tabular-nums w-6 h-6 rounded-full flex items-center justify-center transition-colors",
                     isDayToday
-                      ? "bg-accent text-white font-bold shadow-xs"
-                      : "text-text-secondary group-hover:text-text-primary",
+                      ? "bg-signal-white text-void-950 font-bold shadow-[0_0_12px_rgba(250,250,252,0.4)]"
+                      : "text-mist-200 group-hover:text-signal-white",
                     isHeavyWorkload && !isDayToday && "text-warning font-bold"
                   )}
                 >

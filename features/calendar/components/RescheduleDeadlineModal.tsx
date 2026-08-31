@@ -110,17 +110,17 @@ export function RescheduleDeadlineModal({
                 className={cn(
                   "p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer",
                   isSelected
-                    ? "bg-accent text-white border-accent shadow-xs scale-102"
-                    : "bg-bg-surface text-text-primary border-border-default hover:border-border-hover hover:bg-bg-elevated"
+                    ? "bg-signal-white text-void-950 border-signal-white shadow-[0_0_16px_rgba(250,250,252,0.35)] scale-102"
+                    : "bg-void-900/60 text-signal-white border-white/8 hover:border-white/20 hover:bg-void-800"
                 )}
               >
                 <div className="flex items-center justify-between text-xs">
-                  <span className={cn("font-bold uppercase", isSelected ? "text-white" : "text-text-secondary")}>
+                  <span className={cn("font-bold uppercase", isSelected ? "text-void-950" : "text-mist-200")}>
                     {format(day, "EEE")}
                   </span>
-                  {isSelected && <Check className="w-3.5 h-3.5" />}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-void-950" />}
                   {isOriginal && !isSelected && (
-                    <span className="text-[9px] uppercase font-bold px-1 rounded bg-bg-elevated text-text-tertiary">
+                    <span className="text-[9px] uppercase font-bold px-1 rounded bg-void-800 text-mist-200 border border-white/10">
                       Current
                     </span>
                   )}

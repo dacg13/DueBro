@@ -100,8 +100,8 @@ export function RecurrenceSelector({
                   className={cn(
                     "w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer",
                     isSelected
-                      ? "bg-accent text-white shadow-xs"
-                      : "bg-bg-elevated text-text-secondary hover:text-text-primary border border-border-default hover:border-border-hover"
+                      ? "bg-signal-white text-void-950 shadow-[0_0_12px_rgba(250,250,252,0.3)] font-bold"
+                      : "bg-void-900/60 text-mist-200 hover:text-signal-white border border-white/8 hover:border-white/20"
                   )}
                 >
                   {d.label}

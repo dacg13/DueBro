@@ -99,8 +99,8 @@ export function WeekCalendarView({
                     className={cn(
                       "text-lg font-bold tabular-nums w-8 h-8 rounded-full flex items-center justify-center transition-colors",
                       isDayToday
-                        ? "bg-accent text-white shadow-xs"
-                        : "text-text-primary"
+                        ? "bg-signal-white text-void-950 shadow-[0_0_12px_rgba(250,250,252,0.4)]"
+                        : "text-signal-white"
                     )}
                   >
                     {format(day, "d")}
