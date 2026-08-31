@@ -25,16 +25,21 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         <div
           onClick={() => !disabled && onCheckedChange?.(!checked)}
           className={cn(
-            "h-5 w-5 rounded-md border flex items-center justify-center transition-all cursor-pointer",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+            "h-5 w-5 rounded-md border flex items-center justify-center transition-all duration-200 cursor-pointer",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-white/50 focus-visible:shadow-[0_0_16px_rgba(250,250,252,0.5)]",
             checked
-              ? "bg-accent border-accent text-white"
-              : "border-border-default hover:border-border-hover bg-bg-surface text-transparent",
-            disabled && "cursor-not-allowed opacity-40",
+              ? "bg-signal-white border-signal-white text-void-950 shadow-[0_0_20px_rgba(250,250,252,0.7)]"
+              : "border-graphite-600/60 hover:border-graphite-400 bg-void-900/60 backdrop-blur-[10px] text-transparent",
+            disabled && "cursor-not-allowed opacity-30",
             className
           )}
         >
-          <Check className={cn("w-3.5 h-3.5 transition-transform", checked ? "scale-100" : "scale-0")} />
+          <Check
+            className={cn(
+              "w-3.5 h-3.5 stroke-[3] transition-transform duration-200",
+              checked ? "scale-100" : "scale-0"
+            )}
+          />
         </div>
       </div>
     );

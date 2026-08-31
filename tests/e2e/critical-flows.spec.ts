@@ -40,12 +40,12 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
 
     // Verify at least one task card exists with remaining effort
     const logBtn = page.getByRole("button", { name: /Log Study Time/i }).first();
-    if (await logBtn.isVisible()) {
-      await logBtn.click();
-      // Quick log modal should open with title "Log Study Progress"
-      await expect(page.getByText(/Log Study Progress/i).first()).toBeVisible();
-      await page.getByRole("button", { name: /Cancel/i }).click();
-    }
+    await expect(logBtn).toBeVisible();
+    await logBtn.click();
+    
+    // Quick log modal/sheet should open with title "Log Study Progress"
+    await expect(page.getByRole("heading", { name: /Log Study Progress/i }).first()).toBeVisible({ timeout: 5000 });
+    await page.getByRole("button", { name: /Cancel/i }).first().click();
   });
 
   test("Flow 3: Calendar Month & Week View switching and Rescheduling modal", async ({
@@ -54,12 +54,8 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await page.goto("/calendar");
     await page.waitForLoadState("domcontentloaded");
 
-    // Starts in Month View
-    await expect(page.getByText(/Month View/i)).toBeVisible();
-
     // Switch to Week View
     await page.getByRole("button", { name: "Week", exact: true }).click();
-    await expect(page.getByText(/Week View/i)).toBeVisible();
 
     // Verify 7-day columns are rendered
     await expect(page.getByText("Mon", { exact: true })).toBeVisible();

@@ -4,8 +4,8 @@ import { type Deadline, type Subject, type RiskAssessment } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ProgressBar } from "@/components/shared/ProgressBar";
 import { RiskBadge } from "@/components/shared/RiskBadge";
-import { Button } from "@/components/ui/button";
 import { getDaysRemaining } from "@/server/domain/deadlines";
+import { Button } from "@/components/ui/button";
 import { Clock, Timer, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +27,9 @@ export function TodayFocusCard({
   onClick,
 }: TodayFocusCardProps) {
   const isCompleted = deadline.status === "completed";
-  const subjectColor = subject?.color || "#5B6EF5";
+  const subjectColor = subject?.color || "#FAFAFC";
 
-  let countdownText = "Today";
+  let countdownText = "No date";
   if (deadline.dueDate) {
     const days = getDaysRemaining(deadline.dueDate);
     if (days < 0) countdownText = `${Math.abs(days)}d overdue`;
@@ -45,15 +45,15 @@ export function TodayFocusCard({
     <div
       onClick={() => onClick?.(deadline)}
       className={cn(
-        "group relative rounded-2xl bg-bg-surface border border-border-default hover:border-border-hover p-4 sm:p-5 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col gap-3.5",
-        isCompleted && "opacity-60 bg-bg-surface/50",
-        assessment?.tier === "critical" && "border-risk-critical/40 bg-risk-critical/5",
-        assessment?.tier === "high" && "border-risk-high/30"
+        "group relative rounded-2xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8 hover:border-white/16 hover:shadow-[0_0_32px_rgba(250,250,252,0.08)] p-4 sm:p-5 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col gap-3.5 select-none",
+        isCompleted && "opacity-40 bg-void-900/40",
+        assessment?.tier === "critical" && "border-signal-danger/40 bg-signal-danger/5",
+        assessment?.tier === "high" && "border-white/20"
       )}
     >
       {/* Subject left border indicator */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-1.5"
+        className="absolute left-0 top-0 bottom-0 w-1.5 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
         style={{ backgroundColor: subjectColor }}
       />
 
@@ -69,25 +69,24 @@ export function TodayFocusCard({
             />
           </div>
 
-          {/* Title & Subject */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               {subject && (
                 <span
-                  className="text-[11px] font-semibold px-2 py-0.5 rounded text-text-primary"
+                  className="text-[11px] font-semibold px-2 py-0.5 rounded-md text-signal-white border border-white/10"
                   style={{ backgroundColor: `${subjectColor}25` }}
                 >
                   {subject.name}
                 </span>
               )}
-              <span className="text-[11px] text-text-secondary capitalize">
+              <span className="text-[11px] text-mist-200 capitalize">
                 {deadline.type.replace("_", " ")}
               </span>
             </div>
             <h4
               className={cn(
-                "text-base font-semibold text-text-primary leading-snug truncate",
-                isCompleted && "line-through text-text-tertiary"
+                "text-base font-semibold text-signal-white leading-snug truncate",
+                isCompleted && "line-through text-graphite-400"
               )}
             >
               {deadline.title}
@@ -105,46 +104,47 @@ export function TodayFocusCard({
 
       {/* Progress & Effort Readout */}
       <div className="pl-8 space-y-1.5">
-        <div className="flex items-center justify-between text-xs text-text-secondary">
+        <div className="flex items-center justify-between text-xs text-mist-200">
           <span className="flex items-center gap-1 tabular-nums">
-            <Sparkles className="w-3.5 h-3.5 text-accent" />
+            <Sparkles className="w-3.5 h-3.5 text-signal-white" />
             <span>{remainingHours}h remaining</span>
-            <span className="text-text-tertiary">({effortHours}h total)</span>
+            <span className="text-graphite-300">({effortHours}h total)</span>
           </span>
-          <span className="tabular-nums font-semibold text-text-primary">{deadline.progress}%</span>
+          <span className="tabular-nums font-semibold text-signal-white">{deadline.progress}%</span>
         </div>
         <ProgressBar progress={deadline.progress} variant="default" />
       </div>
 
       {/* Footer: Due Date and Quick Log Button */}
-      <div className="pl-8 pt-1 border-t border-border-default/60 flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-xs text-text-secondary tabular-nums">
-          <Clock className="w-3.5 h-3.5 text-text-tertiary" />
+      <div className="pl-8 pt-1 border-t border-white/6 flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 text-xs text-mist-100/70 tabular-nums">
+          <Clock className="w-3.5 h-3.5 text-graphite-300" />
           <span
             className={cn(
               "font-medium",
-              deadline.status === "overdue" && "text-risk-overdue font-bold"
+              deadline.status === "overdue" && "text-signal-danger font-bold drop-shadow-[0_0_8px_rgba(229,72,77,0.5)]"
             )}
           >
             {countdownText}
           </span>
           {deadline.dueTime && (
-            <span className="text-text-tertiary">at {deadline.dueTime}</span>
+            <span className="text-graphite-300">at {deadline.dueTime}</span>
           )}
         </div>
 
         {/* Quick Log Action */}
         {!isCompleted && onLogEffort && (
           <Button
+            type="button"
             size="sm"
             variant="secondary"
             onClick={(e) => {
               e.stopPropagation();
               onLogEffort(deadline);
             }}
-            className="h-7 text-xs px-2.5 gap-1.5 border-border-default hover:bg-bg-elevated text-text-secondary hover:text-text-primary"
+            className="h-7 text-xs px-2.5 gap-1.5 border-white/10 hover:bg-void-800 text-mist-100 hover:text-signal-white cursor-pointer"
           >
-            <Timer className="w-3.5 h-3.5 text-accent" />
+            <Timer className="w-3.5 h-3.5 text-signal-white" />
             <span>Log Study Time</span>
           </Button>
         )}

@@ -32,26 +32,26 @@ export function BottomSheet({ isOpen, onClose, title, children }: BottomSheetPro
         aria-hidden="true"
       />
 
-      {/* Sheet Container */}
+      {/* Sheet Container — Level 3 Glass */}
       <div
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-50 w-full rounded-t-[20px] bg-bg-elevated border-t border-x border-border-default shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-250"
+          "relative z-50 w-full rounded-t-[22px] bg-void-900/95 backdrop-blur-[40px] border-t border-x border-white/18 shadow-[0_0_64px_rgba(250,250,252,0.10)] flex flex-col max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-250"
         )}
       >
         {/* Drag Handle indicator */}
         <div className="pt-3 pb-1 flex justify-center shrink-0">
-          <div className="w-10 h-1 rounded-full bg-text-tertiary/40" />
+          <div className="w-10 h-1 rounded-full bg-graphite-400/40" />
         </div>
 
         {title && (
-          <div className="flex items-center justify-between px-5 py-3 border-b border-border-default shrink-0">
-            <h3 className="text-base font-semibold text-text-primary">{title}</h3>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-white/8 shrink-0">
+            <h3 className="text-base font-semibold text-signal-white">{title}</h3>
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-bg-surface transition-colors"
+              className="p-1 rounded-lg text-graphite-300 hover:text-signal-white hover:bg-void-800/60 transition-colors"
               aria-label="Close sheet"
             >
               <X className="w-4 h-4" />

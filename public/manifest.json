@@ -1,0 +1,30 @@
+{
+  "name": "DueBro — Student Deadline Tracker",
+  "short_name": "DueBro",
+  "description": "See everything you owe and know what's actually at risk before it's too late. The student deadline tracker with explainable deadline risk intelligence.",
+  "start_url": "/today",
+  "display": "standalone",
+  "background_color": "#08080A",
+  "theme_color": "#08080A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

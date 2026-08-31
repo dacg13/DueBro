@@ -35,10 +35,10 @@ const TYPE_ICONS: Record<DeadlineType, LucideIcon> = {
 };
 
 const PRIORITY_BADGES: Record<Priority, { label: string; dot: string; text: string }> = {
-  low: { label: "Low", dot: "bg-priority-low", text: "text-text-tertiary" },
-  medium: { label: "Medium", dot: "bg-priority-medium", text: "text-accent" },
-  high: { label: "High", dot: "bg-priority-high", text: "text-warning" },
-  critical: { label: "Critical", dot: "bg-priority-critical", text: "text-error" },
+  low: { label: "Low", dot: "bg-graphite-400", text: "text-graphite-300" },
+  medium: { label: "Medium", dot: "bg-mist-200", text: "text-mist-100" },
+  high: { label: "High", dot: "bg-signal-white shadow-[0_0_8px_rgba(250,250,252,0.6)]", text: "text-signal-white font-semibold" },
+  critical: { label: "Critical", dot: "bg-signal-danger shadow-[0_0_8px_rgba(229,72,77,0.6)]", text: "text-signal-danger font-semibold" },
 };
 
 interface DeadlineRowProps {
@@ -73,14 +73,14 @@ export function DeadlineRow({
     else countdownText = `(${Math.abs(days)}d ago)`;
   }
 
-  const subjectColor = subject?.color || "#5B6EF5";
+  const subjectColor = subject?.color || "#FAFAFC";
 
   return (
     <div
       onClick={() => onClick?.(deadline)}
       className={cn(
-        "group flex items-center gap-3.5 px-4 py-3 rounded-xl bg-bg-surface hover:bg-bg-elevated border border-border-default hover:border-border-hover transition-colors cursor-pointer",
-        isCompleted && "opacity-60 bg-bg-surface/40",
+        "group flex items-center gap-3.5 px-4 py-3 rounded-xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8 hover:border-white/16 hover:shadow-[0_0_24px_rgba(250,250,252,0.06)] transition-all duration-200 cursor-pointer select-none",
+        isCompleted && "opacity-40 bg-void-900/40",
         className
       )}
     >
@@ -96,16 +96,16 @@ export function DeadlineRow({
       {/* Subject Indicator Chip */}
       <div className="shrink-0 flex items-center gap-1.5 w-24 truncate">
         <span
-          className="w-2 h-2 rounded-full shrink-0"
+          className="w-2 h-2 rounded-full shrink-0 shadow-[0_0_6px_rgba(255,255,255,0.2)]"
           style={{ backgroundColor: subjectColor }}
         />
-        <span className="text-xs font-medium text-text-secondary truncate">
+        <span className="text-xs font-medium text-mist-100 truncate">
           {subject?.name || "No subject"}
         </span>
       </div>
 
       {/* Type Icon */}
-      <div className="shrink-0 text-text-tertiary">
+      <div className="shrink-0 text-graphite-300 group-hover:text-mist-100 transition-colors">
         <TypeIcon className="w-4 h-4" />
       </div>
 
@@ -113,8 +113,8 @@ export function DeadlineRow({
       <div className="flex-1 min-w-0">
         <span
           className={cn(
-            "text-sm font-medium text-text-primary truncate block",
-            isCompleted && "line-through text-text-tertiary"
+            "text-sm font-medium text-signal-white truncate block",
+            isCompleted && "line-through text-graphite-400"
           )}
         >
           {deadline.title}
@@ -144,17 +144,17 @@ export function DeadlineRow({
       </div>
 
       {/* Due Date with tabular numerals */}
-      <div className="shrink-0 text-right tabular-nums text-xs text-text-secondary w-28">
+      <div className="shrink-0 text-right tabular-nums text-xs text-mist-100/70 w-28">
         <div
           className={cn(
             "font-medium",
-            deadline.status === "overdue" && "text-risk-overdue font-semibold"
+            deadline.status === "overdue" && "text-signal-danger font-semibold drop-shadow-[0_0_8px_rgba(229,72,77,0.4)]"
           )}
         >
           {formattedDate} {countdownText}
         </div>
         {deadline.dueTime && (
-          <div className="text-[11px] text-text-tertiary">{deadline.dueTime}</div>
+          <div className="text-[11px] text-graphite-300">{deadline.dueTime}</div>
         )}
       </div>
     </div>

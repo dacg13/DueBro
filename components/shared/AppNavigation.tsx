@@ -19,6 +19,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { signOutAction } from "@/server/actions/auth";
+import { AppLogo } from "@/components/shared/AppLogo";
 import { cn } from "@/lib/utils";
 
 interface AppNavigationProps {
@@ -42,50 +43,47 @@ export function AppNavigation({ onOpenAddDeadline, children }: AppNavigationProp
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col lg:flex-row text-text-primary">
+    <div className="min-h-screen bg-void-950 flex flex-col lg:flex-row text-signal-white">
       {/* Desktop Persistent Sidebar (>= 1024px) */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col justify-between border-r border-border-default bg-bg-surface p-4 transition-all duration-250 shrink-0 select-none",
+          "hidden lg:flex flex-col justify-between border-r border-white/8 bg-void-900/40 backdrop-blur-[20px] p-4 transition-all duration-250 shrink-0 select-none",
           isSidebarCollapsed ? "w-20" : "w-60"
         )}
       >
         <div className="space-y-6">
           {/* Brand Header */}
-          <div className="flex items-center justify-between px-2">
+          <div className="flex items-center justify-between px-1">
             {!isSidebarCollapsed ? (
               <Link href="/today" className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight text-text-primary">
-                  Due<span className="text-accent">Bro</span>
-                </span>
-                <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded bg-accent-subtle text-accent">
-                  Pro
-                </span>
+                <AppLogo size="md" showWordmark={true} glow={true} />
               </Link>
             ) : (
-              <span className="text-xl font-bold text-accent mx-auto">D</span>
+              <Link href="/today" className="mx-auto" aria-label="DueBro home">
+                <AppLogo size="sm" showWordmark={false} glow={true} />
+              </Link>
             )}
 
             <button
               type="button"
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="p-1 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+              className="p-1 rounded-lg text-graphite-300 hover:text-signal-white hover:bg-void-850/60 transition-colors"
               aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Desktop Primary Action Button (+ Add Deadline) */}
+          {/* Desktop Primary Action Button (+ Add Deadline) — §8: signal-white fill with void-950 text */}
           <button
             type="button"
             onClick={onOpenAddDeadline}
             className={cn(
-              "w-full h-10 rounded-xl bg-accent hover:bg-accent/90 text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.98]",
+              "w-full h-10 rounded-xl bg-signal-white hover:bg-signal-white/95 text-void-950 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_20px_rgba(250,250,252,0.25)] hover:shadow-[0_0_28px_rgba(250,250,252,0.4)] active:scale-[0.98]",
               isSidebarCollapsed && "px-0"
             )}
           >
-            <Plus className="w-4 h-4 shrink-0" />
+            <Plus className="w-4 h-4 shrink-0 stroke-[2.5]" />
             {!isSidebarCollapsed && <span>Add Deadline</span>}
           </button>
 
@@ -102,12 +100,19 @@ export function AppNavigation({ onOpenAddDeadline, children }: AppNavigationProp
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group",
                     isActive
-                      ? "bg-accent-subtle text-accent font-semibold"
-                      : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
+                      ? "bg-void-800/60 text-signal-white font-semibold border border-white/10 shadow-[0_0_16px_rgba(250,250,252,0.06)]"
+                      : "text-mist-100/70 hover:text-signal-white hover:bg-void-850/40"
                   )}
                   title={isSidebarCollapsed ? item.label : undefined}
                 >
-                  <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-accent" : "text-text-tertiary group-hover:text-text-secondary")} />
+                  <Icon
+                    className={cn(
+                      "w-4 h-4 shrink-0 transition-colors",
+                      isActive
+                        ? "text-signal-white drop-shadow-[0_0_8px_rgba(250,250,252,0.6)]"
+                        : "text-graphite-300 group-hover:text-signal-white"
+                    )}
+                  />
                   {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
                 </Link>
               );
@@ -116,10 +121,10 @@ export function AppNavigation({ onOpenAddDeadline, children }: AppNavigationProp
         </div>
 
         {/* Sidebar Footer */}
-        <div className="pt-4 border-t border-border-default space-y-2">
+        <div className="pt-4 border-t border-white/8 space-y-2">
           {!isSidebarCollapsed && (
-            <div className="px-2 py-1 flex items-center gap-2 text-[11px] text-text-tertiary">
-              <ShieldCheck className="w-3.5 h-3.5 text-accent" />
+            <div className="px-2 py-1 flex items-center gap-2 text-[11px] text-graphite-300">
+              <ShieldCheck className="w-3.5 h-3.5 text-signal-white drop-shadow-[0_0_6px_rgba(250,250,252,0.5)]" />
               <span>Risk Engine Active</span>
             </div>
           )}
@@ -127,7 +132,7 @@ export function AppNavigation({ onOpenAddDeadline, children }: AppNavigationProp
             type="button"
             onClick={() => signOutAction()}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-text-secondary hover:text-error hover:bg-error/10 transition-colors cursor-pointer",
+              "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-graphite-300 hover:text-signal-danger hover:bg-signal-danger/10 transition-colors cursor-pointer",
               isSidebarCollapsed && "justify-center px-0"
             )}
             title={isSidebarCollapsed ? "Sign Out" : undefined}
@@ -140,6 +145,13 @@ export function AppNavigation({ onOpenAddDeadline, children }: AppNavigationProp
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
+        {/* Mobile Top Header */}
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/8 bg-void-950/80 backdrop-blur-[20px] sticky top-0 z-30">
+          <Link href="/today" className="flex items-center gap-2">
+            <AppLogo size="sm" showWordmark={true} glow={true} />
+          </Link>
+        </header>
+
         {/* Main View Container */}
         <main className="flex-1 p-4 sm:p-6 max-w-6xl w-full mx-auto">{children}</main>
       </div>
@@ -149,16 +161,16 @@ export function AppNavigation({ onOpenAddDeadline, children }: AppNavigationProp
         <button
           type="button"
           onClick={onOpenAddDeadline}
-          className="w-14 h-14 rounded-full bg-accent text-white shadow-xl flex items-center justify-center hover:bg-accent/90 active:scale-95 transition-transform cursor-pointer"
+          className="w-14 h-14 rounded-full bg-signal-white text-void-950 shadow-[0_0_24px_rgba(250,250,252,0.5)] flex items-center justify-center hover:bg-signal-white/95 active:scale-95 transition-transform cursor-pointer"
           aria-label="Add new deadline"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-6 h-6 stroke-[2.5]" />
         </button>
       </div>
 
-      {/* Mobile Bottom Tab Bar (4 items per DESIGN_PRD.md §7) */}
+      {/* Mobile Bottom Tab Bar */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-surface/95 backdrop-blur-md border-t border-border-default px-3 py-2 flex items-center justify-around"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-void-900/80 backdrop-blur-[20px] border-t border-white/8 px-3 py-2 flex items-center justify-around"
         aria-label="Mobile Navigation"
       >
         {NAV_ITEMS.filter((item) => !item.desktopOnly).map((item) => {
@@ -171,10 +183,10 @@ export function AppNavigation({ onOpenAddDeadline, children }: AppNavigationProp
               href={item.href}
               className={cn(
                 "flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[10px] font-medium transition-colors",
-                isActive ? "text-accent font-semibold" : "text-text-secondary hover:text-text-primary"
+                isActive ? "text-signal-white font-semibold drop-shadow-[0_0_8px_rgba(250,250,252,0.5)]" : "text-mist-200/60 hover:text-signal-white"
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive ? "text-accent" : "text-text-secondary")} />
+              <Icon className={cn("w-5 h-5", isActive ? "text-signal-white drop-shadow-[0_0_6px_rgba(250,250,252,0.7)]" : "text-graphite-300")} />
               <span>{item.label}</span>
             </Link>
           );

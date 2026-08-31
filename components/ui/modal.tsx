@@ -50,32 +50,32 @@ export function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop Scrim with permitted blur */}
       <div
-        className="fixed inset-0 sheet-backdrop transition-opacity animate-in fade-in"
+        className="fixed inset-0 sheet-backdrop transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal Container */}
+      {/* Level 3 Glass Modal Container (§4) */}
       <div
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-50 w-full rounded-2xl bg-bg-elevated border border-border-default elevated-shadow overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200",
+          "relative z-50 w-full rounded-2xl bg-void-900/95 backdrop-blur-[40px] border border-white/18 shadow-[0_0_64px_rgba(250,250,252,0.10)] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200",
           maxWidthClasses
         )}
       >
         {(title || description) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border-default shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/8 shrink-0">
             <div>
-              {title && <h3 className="text-lg font-semibold text-text-primary">{title}</h3>}
+              {title && <h3 className="text-lg font-semibold text-signal-white">{title}</h3>}
               {description && (
-                <p className="text-xs text-text-secondary mt-0.5">{description}</p>
+                <p className="text-xs text-mist-200 mt-0.5">{description}</p>
               )}
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-bg-surface transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-graphite-300 hover:text-signal-white hover:bg-void-800/60 transition-colors cursor-pointer"
               aria-label="Close dialog"
             >
               <X className="w-4 h-4" />

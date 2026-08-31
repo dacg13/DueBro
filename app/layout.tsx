@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { AppSplashScreen } from "@/components/shared/AppSplashScreen";
 import "./globals.css";
 
 const inter = Inter({
@@ -11,8 +12,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "DueBro — Student Deadline Tracker",
   description:
-    "See everything you owe and know what's actually at risk before it's too late. The premium student deadline tracker with explainable deadline risk intelligence.",
+    "See everything you owe and know what's actually at risk before it's too late. The student deadline tracker with explainable deadline risk intelligence.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/logo.png", sizes: "any" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/logo.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -21,7 +33,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B0B0E",
+  themeColor: "#08080A",
   width: "device-width",
   initialScale: 1,
 };
@@ -33,7 +45,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} dark h-full`}>
-      <body className="min-h-full bg-bg-base text-text-primary antialiased selection:bg-accent selection:text-white flex flex-col font-sans">
+      <body className="min-h-full bg-void-950 text-signal-white antialiased selection:bg-signal-white selection:text-void-950 flex flex-col font-sans">
+        <AppSplashScreen />
         {children}
       </body>
     </html>

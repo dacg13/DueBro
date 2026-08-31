@@ -2,43 +2,111 @@
 
 @layer base {
   :root {
-    --bg-base: #0B0B0E;
-    --bg-surface: #131318;
-    --bg-elevated: #1C1C23;
+    /* Antigravity — Design Language (Codename: Suspend v1.0) */
+    /* Void & graphite (structure) */
+    --void-950: #08080A;
+    --void-900: #212025;
+    --void-850: #2B2C32;
+    --void-800: #3E3D42;
+    --graphite-600: #504E54;
+    --graphite-400: #72727C;
+    --graphite-300: #9897A3;
 
-    --border-default: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.16);
+    /* Mist & paper (content surfaces) */
+    --mist-200: #BFC0CB;
+    --mist-100: #D4D5DF;
+    --paper-50: #E7EBF2;
+    --signal-white: #FAFAFC;
 
-    --text-primary: #F5F5F7;
-    --text-secondary: #A0A0AC;
-    --text-tertiary: #6B6B76;
+    /* The one functional exception */
+    --signal-danger: #E5484D;
 
-    --accent: #5B6EF5;
-    --accent-subtle: rgba(91, 110, 245, 0.14);
+    /* Semantic Aliases for Components */
+    --bg-base: var(--void-950);
+    --bg-surface: var(--void-900);
+    --bg-elevated: var(--void-850);
 
-    /* Priority semantics */
-    --priority-low: #6B6B76;
-    --priority-medium: #5B6EF5;
-    --priority-high: #E0A030;
-    --priority-critical: #E5484D;
+    --border-default: rgba(250, 250, 252, 0.08);
+    --border-hover: rgba(250, 250, 252, 0.16);
+
+    --text-primary: var(--signal-white);
+    --text-secondary: var(--mist-100);
+    --text-tertiary: var(--graphite-300);
+    --text-placeholder: var(--graphite-400);
+
+    --accent: var(--signal-white);
+    --accent-subtle: rgba(250, 250, 252, 0.10);
+
+    /* Priority semantics (refined achromatic + light with danger reserved) */
+    --priority-low: var(--graphite-400);
+    --priority-medium: var(--mist-200);
+    --priority-high: var(--signal-white);
+    --priority-critical: var(--signal-danger);
 
     /* Risk tier semantics */
-    --risk-on-track: #3FB56E;
-    --risk-upcoming: #5B6EF5;
+    --risk-on-track: var(--mist-200);
+    --risk-upcoming: var(--mist-100);
     --risk-needs-attention: #E0A030;
     --risk-at-risk: #E8783D;
-    --risk-critical: #E5484D;
+    --risk-critical: var(--signal-danger);
     --risk-overdue: #B23A3E;
 
     /* System semantics */
-    --success: #3FB56E;
+    --success: var(--signal-white);
     --warning: #E0A030;
-    --error: #E5484D;
-    --info: #5B6EF5;
+    --error: var(--signal-danger);
+    --info: var(--mist-100);
+
+    /* Glass Elevation Levels */
+    --surface-0-bg: var(--void-950);
+
+    --surface-1-bg: rgba(80, 78, 84, 0.28);
+    --surface-1-blur: 20px;
+    --surface-1-border: 1px solid rgba(250, 250, 252, 0.08);
+    --surface-1-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+
+    --surface-2-bg: rgba(114, 114, 124, 0.22);
+    --surface-2-blur: 32px;
+    --surface-2-border: 1px solid rgba(250, 250, 252, 0.14);
+    --surface-2-glow: 0 0 40px rgba(250, 250, 252, 0.06);
+
+    --surface-3-bg: rgba(152, 151, 163, 0.16);
+    --surface-3-blur: 40px;
+    --surface-3-border: 1px solid rgba(250, 250, 252, 0.18);
+    --surface-3-glow: 0 0 64px rgba(250, 250, 252, 0.10);
+
+    --signal-glow: 0 0 24px rgba(250, 250, 252, 0.55);
+    --signal-glow-sm: 0 0 12px rgba(250, 250, 252, 0.40);
+    --signal-glow-focus: 0 0 16px rgba(250, 250, 252, 0.35);
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-full: 999px;
+
+    /* Motion Easing */
+    --ease-drift: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-settle: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-release: cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
 @theme {
+  --color-void-950: var(--void-950);
+  --color-void-900: var(--void-900);
+  --color-void-850: var(--void-850);
+  --color-void-800: var(--void-800);
+  --color-graphite-600: var(--graphite-600);
+  --color-graphite-400: var(--graphite-400);
+  --color-graphite-300: var(--graphite-300);
+
+  --color-mist-200: var(--mist-200);
+  --color-mist-100: var(--mist-100);
+  --color-paper-50: var(--paper-50);
+  --color-signal-white: var(--signal-white);
+  --color-signal-danger: var(--signal-danger);
+
   --color-bg-base: var(--bg-base);
   --color-bg-surface: var(--bg-surface);
   --color-bg-elevated: var(--bg-elevated);
@@ -74,7 +142,7 @@
 }
 
 body {
-  background-color: var(--bg-base);
+  background-color: var(--void-950);
   color: var(--text-primary);
   font-family: var(--font-inter);
   min-height: 100vh;
@@ -89,38 +157,73 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Glassmorphism scrim exclusively for modals and bottom sheets */
+/* Glass Level 1 — Resting glass: sidebars, base cards, containers */
+.glass-level-1 {
+  background: var(--surface-1-bg);
+  backdrop-filter: blur(var(--surface-1-blur));
+  -webkit-backdrop-filter: blur(var(--surface-1-blur));
+  border: var(--surface-1-border);
+  box-shadow: var(--surface-1-shadow);
+}
+
+/* Glass Level 2 — Raised glass: popovers, dropdowns, hover-active cards */
+.glass-level-2 {
+  background: var(--surface-2-bg);
+  backdrop-filter: blur(var(--surface-2-blur));
+  -webkit-backdrop-filter: blur(var(--surface-2-blur));
+  border: var(--surface-2-border);
+  box-shadow: var(--surface-2-glow);
+}
+
+/* Glass Level 3 — Modal / command layer: closest to the light */
+.glass-level-3 {
+  background: var(--surface-3-bg);
+  backdrop-filter: blur(var(--surface-3-blur));
+  -webkit-backdrop-filter: blur(var(--surface-3-blur));
+  border: var(--surface-3-border);
+  box-shadow: var(--surface-3-glow);
+}
+
+/* Signal Glow Utilities */
+.glow-signal {
+  box-shadow: var(--signal-glow);
+}
+
+.glow-signal-sm {
+  box-shadow: var(--signal-glow-sm);
+}
+
+.glow-text {
+  text-shadow: 0 0 16px rgba(250, 250, 252, 0.6);
+}
+
+/* Scrim for modals & bottom sheets */
 .sheet-backdrop {
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(8, 8, 10, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
-/* Modal elevation shadow */
-.elevated-shadow {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-/* Custom scrollbars matching dark theme */
+/* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-base);
+  background: var(--void-950);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-elevated);
+  background: var(--graphite-600);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
+  background: var(--graphite-400);
 }
 
-/* Custom Range Slider Styling with Fill & Glow */
+/* Custom Range Slider with Pure Light Glow */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -137,34 +240,63 @@ input[type="range"]::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #5B6EF5;
+  background: var(--signal-white);
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(91, 110, 245, 0.6), 0 0 0 2px #131318;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 0 12px rgba(250, 250, 252, 0.7), 0 0 0 2px var(--void-950);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 14px rgba(91, 110, 245, 0.9), 0 0 0 2px #131318;
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(250, 250, 252, 0.95), 0 0 0 2px var(--void-950);
 }
 
 input[type="range"]::-webkit-slider-thumb:active {
-  transform: scale(1.1);
-  box-shadow: 0 0 18px rgba(91, 110, 245, 1), 0 0 0 2px #131318;
+  transform: scale(1.08);
+  box-shadow: 0 0 24px rgba(250, 250, 252, 1), 0 0 0 2px var(--void-950);
 }
 
 input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #5B6EF5;
+  background: var(--signal-white);
   cursor: pointer;
-  border: 2px solid #131318;
-  box-shadow: 0 0 8px rgba(91, 110, 245, 0.6);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 2px solid var(--void-950);
+  box-shadow: 0 0 12px rgba(250, 250, 252, 0.7);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 input[type="range"]::-moz-range-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 14px rgba(91, 110, 245, 0.9);
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(250, 250, 252, 0.95);
+}
+
+/* The Signature Release Motion Sequence (§7) */
+@keyframes releaseIgnite {
+  0% {
+    box-shadow: 0 0 0 rgba(250, 250, 252, 0);
+  }
+  100% {
+    box-shadow: 0 0 28px rgba(250, 250, 252, 0.75);
+  }
+}
+
+@keyframes releaseDriftOut {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px) scale(0.96);
+    opacity: 0;
+  }
+}
+
+.release-ignite {
+  animation: releaseIgnite 180ms var(--ease-settle) forwards;
+}
+
+.release-drift {
+  animation: releaseDriftOut 420ms var(--ease-release) forwards;
 }

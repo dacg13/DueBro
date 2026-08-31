@@ -34,10 +34,10 @@ const TYPE_ICONS: Record<DeadlineType, LucideIcon> = {
 };
 
 const PRIORITY_BADGES: Record<Priority, { label: string; dot: string; text: string }> = {
-  low: { label: "Low", dot: "bg-priority-low", text: "text-text-tertiary" },
-  medium: { label: "Medium", dot: "bg-priority-medium", text: "text-accent" },
-  high: { label: "High", dot: "bg-priority-high", text: "text-warning" },
-  critical: { label: "Critical", dot: "bg-priority-critical", text: "text-error" },
+  low: { label: "Low", dot: "bg-graphite-400", text: "text-graphite-300" },
+  medium: { label: "Medium", dot: "bg-mist-200", text: "text-mist-100" },
+  high: { label: "High", dot: "bg-signal-white shadow-[0_0_8px_rgba(250,250,252,0.6)]", text: "text-signal-white font-semibold" },
+  critical: { label: "Critical", dot: "bg-signal-danger shadow-[0_0_8px_rgba(229,72,77,0.6)]", text: "text-signal-danger font-semibold" },
 };
 
 interface DeadlineCardProps {
@@ -75,14 +75,14 @@ export function DeadlineCard({
     }
   }
 
-  const subjectColor = subject?.color || "#5B6EF5";
+  const subjectColor = subject?.color || "#FAFAFC";
 
   return (
     <div
       onClick={() => onClick?.(deadline)}
       className={cn(
-        "group relative rounded-2xl bg-bg-surface border border-border-default hover:border-border-hover p-4 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col gap-2.5",
-        isCompleted && "opacity-60 bg-bg-surface/50",
+        "group relative rounded-2xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8 hover:border-white/16 hover:shadow-[0_0_28px_rgba(250,250,252,0.08)] p-4 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col gap-2.5 select-none",
+        isCompleted && "opacity-40 bg-void-900/40",
         className
       )}
     >
@@ -111,16 +111,16 @@ export function DeadlineCard({
             {/* Subject name badge */}
             {subject && (
               <span
-                className="text-[11px] font-medium px-2 py-0.5 rounded-md text-text-primary"
-                style={{ backgroundColor: `${subjectColor}20` }}
+                className="text-[11px] font-semibold px-2 py-0.5 rounded-md text-signal-white border border-white/10"
+                style={{ backgroundColor: `${subjectColor}25` }}
               >
                 {subject.name}
               </span>
             )}
 
             {/* Type badge */}
-            <span className="inline-flex items-center gap-1 text-[11px] text-text-secondary capitalize">
-              <TypeIcon className="w-3 h-3 text-text-tertiary" />
+            <span className="inline-flex items-center gap-1 text-[11px] text-mist-200 capitalize">
+              <TypeIcon className="w-3 h-3 text-graphite-300" />
               {deadline.type.replace("_", " ")}
             </span>
 
@@ -134,8 +134,8 @@ export function DeadlineCard({
 
           <h4
             className={cn(
-              "text-sm font-semibold text-text-primary truncate transition-colors",
-              isCompleted && "line-through text-text-tertiary"
+              "text-sm font-semibold text-signal-white truncate transition-colors",
+              isCompleted && "line-through text-graphite-400"
             )}
           >
             {deadline.title}
@@ -151,19 +151,19 @@ export function DeadlineCard({
       )}
 
       {/* Card Footer: Due Countdown and Priority */}
-      <div className="pl-8 flex items-center justify-between text-xs text-text-secondary pt-1 border-t border-border-default/50">
+      <div className="pl-8 flex items-center justify-between text-xs text-mist-100/70 pt-1 border-t border-white/6">
         <div className="flex items-center gap-1.5 tabular-nums">
-          <Clock className="w-3.5 h-3.5 text-text-tertiary" />
+          <Clock className="w-3.5 h-3.5 text-graphite-300" />
           <span
             className={cn(
               "font-medium",
-              deadline.status === "overdue" && "text-risk-overdue font-semibold"
+              deadline.status === "overdue" && "text-signal-danger font-semibold drop-shadow-[0_0_8px_rgba(229,72,77,0.4)]"
             )}
           >
             {countdownText}
           </span>
           {deadline.dueTime && (
-            <span className="text-text-tertiary">at {deadline.dueTime}</span>
+            <span className="text-graphite-300">at {deadline.dueTime}</span>
           )}
         </div>
 
