@@ -131,7 +131,7 @@ export function DeadlineRow({
       {/* Risk Badge (Desktop) */}
       {assessment && (
         <div className="shrink-0 hidden lg:block">
-          <RiskBadge assessment={assessment} size="sm" showScore />
+          <RiskBadge assessment={assessment} size="sm" showScore={false} />
         </div>
       )}
 

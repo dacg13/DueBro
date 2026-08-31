@@ -129,7 +129,7 @@ export function QuickCaptureWidget({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="e.g. Read biology chapter 4 by Friday 5pm 2h urgent"
+          placeholder="e.g. Read biology chapter 4 by Friday 5pm urgent"
           disabled={isSubmitting}
           className="h-10 text-xs bg-bg-elevated border-border-default focus:border-accent flex-1"
         />
@@ -175,12 +175,6 @@ export function QuickCaptureWidget({
             <Tag className="w-3 h-3 text-text-tertiary" />
             {parsed.type}
           </span>
-
-          {parsed.estimatedEffortHours && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-bg-elevated text-text-secondary border border-border-default tabular-nums">
-              {parsed.estimatedEffortHours}h effort
-            </span>
-          )}
 
           {parsed.priority === "critical" && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error/15 text-error border border-error/30 font-bold">

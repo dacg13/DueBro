@@ -2,22 +2,15 @@
 
 import { useState, useMemo } from "react";
 import { type Deadline, type Subject } from "@/types";
-import { generateDeterministicSchedule } from "@/server/domain/scheduling-engine";
-import { WorkloadTimeline } from "@/features/workload/components/WorkloadTimeline";
-import { DailyChunkCard } from "@/features/workload/components/DailyChunkCard";
-import { CapacityTuner } from "@/features/workload/components/CapacityTuner";
-import { ShortfallWarningBanner } from "@/features/workload/components/ShortfallWarningBanner";
-import { QuickLogEffortModal } from "@/features/today/components/QuickLogEffortModal";
+import { assessAllDeadlinesRisk } from "@/server/domain/risk";
+import { DeadlineCard } from "@/components/shared/DeadlineCard";
 import { DeadlineDetailModal } from "@/features/deadlines/components/DeadlineDetailModal";
 import { AddDeadlineDialog } from "@/features/deadlines/components/AddDeadlineDialog";
-import { format, parseISO } from "date-fns";
-import {
-  Calendar,
-  BarChart3,
-  CheckCircle2,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { format, addDays, startOfDay } from "date-fns";
+import { Plus } from "lucide-react";
+import { toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
 
-// Initial demonstration data
 const INITIAL_DEMO_SUBJECTS: Subject[] = [
   {
     id: "sub-cs101",
@@ -62,15 +55,15 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     termId: "term-1",
     title: "Dynamic Programming Problem Set 4",
     type: "assignment",
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0],
+    dueDate: new Date().toISOString().split("T")[0],
     dueTime: "23:59",
     priority: "high",
     status: "in_progress",
-    progress: 40,
-    estimatedEffortHours: 4.5,
+    progress: 60,
+    estimatedEffortHours: null,
     location: null,
-    notes: null,
-    tags: [],
+    notes: "Submit PDF via Gradescope.",
+    tags: ["homework"],
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
@@ -84,17 +77,17 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     userId: "demo-user",
     subjectId: "sub-math201",
     termId: "term-1",
-    title: "Midterm Exam: Vector Spaces",
+    title: "Midterm Exam: Vector Spaces & Eigenvalues",
     type: "exam",
-    dueDate: new Date(Date.now() + 86400000 * 5).toISOString().split("T")[0],
+    dueDate: new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0],
     dueTime: "10:00",
     priority: "critical",
     status: "not_started",
     progress: 10,
-    estimatedEffortHours: 8.0,
+    estimatedEffortHours: null,
     location: "Hall B, Room 204",
-    notes: null,
-    tags: [],
+    notes: "Closed book exam.",
+    tags: ["midterm", "exam"],
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
@@ -108,41 +101,17 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     userId: "demo-user",
     subjectId: "sub-phys150",
     termId: "term-1",
-    title: "Lab Report 3",
+    title: "Lab Report 3: Rotational Inertia",
     type: "lab",
     dueDate: new Date(Date.now() + 86400000 * 1).toISOString().split("T")[0],
     dueTime: "17:00",
     priority: "medium",
     status: "not_started",
-    progress: 20,
-    estimatedEffortHours: 3.0,
+    progress: 25,
+    estimatedEffortHours: null,
     location: "Physics Lab 102",
-    notes: null,
-    tags: [],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-4",
-    userId: "demo-user",
-    subjectId: "sub-cs101",
-    termId: "term-1",
-    title: "Graph Algorithms Problem Set 5",
-    type: "assignment",
-    dueDate: new Date(Date.now() + 86400000 * 10).toISOString().split("T")[0],
-    dueTime: "23:59",
-    priority: "high",
-    status: "not_started",
-    progress: 0,
-    estimatedEffortHours: 6.0,
-    location: null,
-    notes: null,
-    tags: [],
+    notes: "Include uncertainty tables.",
+    tags: ["lab"],
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
@@ -153,53 +122,57 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
   },
 ];
 
-export default function WorkloadPage() {
+export default function WorkloadRoadmapPage() {
   const [deadlines, setDeadlines] = useState<Deadline[]>(INITIAL_DEMO_DEADLINES);
   const [subjects] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
-
-  // Capacity Tuner states
-  const [weekdayHours, setWeekdayHours] = useState(2.5);
-  const [weekendHours, setWeekendHours] = useState(4.5);
-
-  const todayStr = format(new Date(), "yyyy-MM-dd");
-  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
-
-  // Modals state
-  const [activeDeadlineForLog, setActiveDeadlineForLog] = useState<Deadline | null>(null);
-  const [selectedDeadlineForDetail, setSelectedDeadlineForDetail] = useState<Deadline | null>(null);
+  const [selectedDeadline, setSelectedDeadline] = useState<Deadline | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  // Subject lookup
   const subjectMap = useMemo(() => {
     const map = new Map<string, Subject>();
     subjects.forEach((s) => map.set(s.id, s));
     return map;
   }, [subjects]);
 
-  // Consumes pure scheduling-engine directly! (Does not re-derive)
-  const scheduleResult = useMemo(() => {
-    return generateDeterministicSchedule(deadlines, {
-      startDate: new Date(),
-      daysToPlan: 14,
-      weekdayCapacityHours: weekdayHours,
-      weekendCapacityHours: weekendHours,
-      minChunkHours: 0.5,
-      maxChunkHours: 2.5,
+  const riskMap = useMemo(() => {
+    return assessAllDeadlinesRisk(deadlines);
+  }, [deadlines]);
+
+  const days14 = useMemo(() => {
+    const today = startOfDay(new Date());
+    return Array.from({ length: 14 }, (_, i) => {
+      const date = addDays(today, i);
+      const dateStr = format(date, "yyyy-MM-dd");
+      const matched = deadlines.filter((d) => d.dueDate === dateStr && !d.deletedAt);
+      return {
+        date,
+        dateStr,
+        dayLabel: format(date, "EEE"),
+        monthDay: format(date, "MMM d"),
+        isToday: i === 0,
+        deadlines: matched,
+      };
     });
-  }, [deadlines, weekdayHours, weekendHours]);
+  }, [deadlines]);
 
-  // Selected day's plan
-  const activeDayPlan = useMemo(() => {
-    return (
-      scheduleResult.dailyPlans.find((p) => p.date === selectedDate) ||
-      scheduleResult.dailyPlans[0]
+  const handleToggleComplete = async (id: string) => {
+    setDeadlines((prev) =>
+      prev.map((d) => {
+        if (d.id === id) {
+          const isNowCompleted = d.status !== "completed";
+          return {
+            ...d,
+            status: isNowCompleted ? "completed" : "not_started",
+            completedAt: isNowCompleted ? new Date() : null,
+            progress: isNowCompleted ? 100 : d.progress,
+          };
+        }
+        return d;
+      })
     );
-  }, [scheduleResult, selectedDate]);
-
-  const formattedSelectedDay = activeDayPlan
-    ? format(parseISO(activeDayPlan.date), "EEEE, MMMM d, yyyy")
-    : "Selected Day";
+    await toggleDeadlineCompleteAction(id);
+  };
 
   return (
     <div className="space-y-6">
@@ -207,151 +180,93 @@ export default function WorkloadPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-              Workload Pacing &amp; Capacity Planner
-            </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20">
-              V1.5 Smart Planner
+            <h1 className="text-2xl font-bold tracking-tight text-signal-white">14-Day Roadmap</h1>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-void-850 text-signal-white border border-white/10">
+              Upcoming Schedule
             </span>
           </div>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Deterministic workload smoothing distributes study hours evenly to avoid exam cramming and burnout.
+          <p className="text-xs text-mist-200 mt-0.5">
+            Chronological glance of your assignments and exams over the next two weeks.
           </p>
         </div>
 
-        {/* Global Stats Badges */}
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          <div className="px-3 py-1.5 rounded-xl bg-bg-surface border border-border-default flex items-center gap-1.5 tabular-nums">
-            <BarChart3 className="w-3.5 h-3.5 text-accent" />
-            <span className="text-text-secondary">14-Day Effort:</span>
-            <span className="font-bold text-text-primary">{scheduleResult.totalEffortAllocated.toFixed(1)}h</span>
-          </div>
-
-          <div className="px-3 py-1.5 rounded-xl bg-bg-surface border border-border-default flex items-center gap-1.5 tabular-nums">
-            <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-            <span className="text-text-secondary">Avg Daily Load:</span>
-            <span className="font-bold text-text-primary">
-              {(scheduleResult.totalEffortAllocated / 14).toFixed(1)}h/day
-            </span>
-          </div>
-        </div>
+        <Button onClick={() => setIsAddOpen(true)} className="gap-2 self-start sm:self-center">
+          <Plus className="w-4 h-4" />
+          Add Deadline
+        </Button>
       </div>
 
-      {/* Shortfall Warnings Banner */}
-      <ShortfallWarningBanner shortfalls={scheduleResult.shortfalls} />
-
-      {/* Capacity Tuner Controls */}
-      <CapacityTuner
-        weekdayHours={weekdayHours}
-        weekendHours={weekendHours}
-        onChangeWeekday={setWeekdayHours}
-        onChangeWeekend={setWeekendHours}
-      />
-
-      {/* 14-Day Timeline Heatmap */}
-      <WorkloadTimeline
-        plans={scheduleResult.dailyPlans}
-        selectedDate={selectedDate}
-        onSelectDate={setSelectedDate}
-      />
-
-      {/* Selected Day Breakdown */}
-      {activeDayPlan && (
-        <div className="rounded-2xl bg-bg-surface border border-border-default p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-border-default pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-accent-subtle text-accent flex items-center justify-center">
-                <Calendar className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-text-primary">{formattedSelectedDay}</h3>
-                <div className="text-xs text-text-secondary flex items-center gap-1.5 tabular-nums">
-                  <span>Planned: <strong className="text-accent">{activeDayPlan.allocatedHours.toFixed(1)}h</strong></span>
-                  <span>&bull;</span>
-                  <span>Capacity: {activeDayPlan.capacityHours.toFixed(1)}h ({activeDayPlan.utilizationPercent.toFixed(0)}% load)</span>
+      {/* 14-Day Timeline List */}
+      <div className="space-y-4">
+        {days14.map((day) => {
+          const hasDeadlines = day.deadlines.length > 0;
+          return (
+            <div
+              key={day.dateStr}
+              className={`p-4 rounded-2xl border transition-all ${
+                day.isToday
+                  ? "bg-graphite-600/25 border-white/20 shadow-[0_0_24px_rgba(250,250,252,0.06)]"
+                  : hasDeadlines
+                  ? "bg-graphite-600/18 border-white/10"
+                  : "bg-void-900/30 border-white/5 opacity-70"
+              }`}
+            >
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/6">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-signal-white uppercase">
+                    {day.dayLabel}
+                  </span>
+                  <span className="text-xs text-mist-200">{day.monthDay}</span>
+                  {day.isToday && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-signal-white text-void-950">
+                      Today
+                    </span>
+                  )}
                 </div>
+                <span className="text-xs text-mist-200 tabular-nums">
+                  {day.deadlines.length} {day.deadlines.length === 1 ? "task" : "tasks"}
+                </span>
               </div>
+
+              {hasDeadlines ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                  {day.deadlines.map((dl) => (
+                    <DeadlineCard
+                      key={dl.id}
+                      deadline={dl}
+                      subject={dl.subjectId ? subjectMap.get(dl.subjectId) : null}
+                      assessment={riskMap.get(dl.id)}
+                      onToggleComplete={handleToggleComplete}
+                      onClick={() => {
+                        setSelectedDeadline(dl);
+                        setIsDetailOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-graphite-400 italic py-1">No deadlines scheduled</p>
+              )}
             </div>
+          );
+        })}
+      </div>
 
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-bg-elevated text-text-secondary border border-border-default tabular-nums">
-              {activeDayPlan.chunks.length} Study Session{activeDayPlan.chunks.length === 1 ? "" : "s"}
-            </span>
-          </div>
-
-          {/* Session Chunks List */}
-          <div className="space-y-2.5">
-            {activeDayPlan.chunks.length === 0 ? (
-              <div className="py-8 text-center text-xs text-text-tertiary">
-                No study sessions scheduled for this date.
-              </div>
-            ) : (
-              activeDayPlan.chunks.map((chunk) => (
-                <DailyChunkCard
-                  key={chunk.id}
-                  chunk={chunk}
-                  subject={chunk.subjectId ? subjectMap.get(chunk.subjectId) : null}
-                  onOpenDeadline={(dlId) => {
-                    const found = deadlines.find((d) => d.id === dlId);
-                    if (found) {
-                      setSelectedDeadlineForDetail(found);
-                      setIsDetailOpen(true);
-                    }
-                  }}
-                  onQuickLog={(dlId) => {
-                    const found = deadlines.find((d) => d.id === dlId);
-                    if (found) {
-                      setActiveDeadlineForLog(found);
-                    }
-                  }}
-                />
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Effort Logger Modal */}
-      <QuickLogEffortModal
-        deadline={activeDeadlineForLog}
-        subject={activeDeadlineForLog?.subjectId ? subjectMap.get(activeDeadlineForLog.subjectId) : null}
-        isOpen={Boolean(activeDeadlineForLog)}
-        onClose={() => setActiveDeadlineForLog(null)}
-        onSuccess={(updated) => {
-          setDeadlines((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-          setActiveDeadlineForLog(null);
-        }}
-      />
-
-      {/* Deadline Detail Inspection Modal */}
       <DeadlineDetailModal
-        deadline={selectedDeadlineForDetail}
+        deadline={selectedDeadline}
+        subject={selectedDeadline?.subjectId ? subjectMap.get(selectedDeadline.subjectId) : null}
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        subject={
-          selectedDeadlineForDetail?.subjectId
-            ? subjectMap.get(selectedDeadlineForDetail.subjectId)
-            : null
-        }
-        onEdit={(dl) => {
-          setSelectedDeadlineForDetail(dl);
-          setIsAddOpen(true);
-        }}
-        onDeleteSuccess={(id) =>
-          setDeadlines((prev) => prev.filter((d) => d.id !== id))
-        }
+        onToggleComplete={handleToggleComplete}
+        onEdit={() => {}}
       />
 
-      {/* Add / Edit Deadline Dialog */}
       <AddDeadlineDialog
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         subjects={subjects}
-        initialData={selectedDeadlineForDetail}
         onSuccess={(saved) => {
-          setDeadlines((prev) => {
-            const exists = prev.some((d) => d.id === saved.id);
-            return exists ? prev.map((d) => (d.id === saved.id ? saved : d)) : [saved, ...prev];
-          });
+          setDeadlines((prev) => [saved, ...prev]);
         }}
       />
     </div>

@@ -11,7 +11,6 @@ import {
   Settings,
   Plus,
   Inbox,
-  BarChart3,
   TrendingUp,
   ShieldCheck,
   ChevronLeft,
@@ -30,11 +29,10 @@ interface AppNavigationProps {
 const NAV_ITEMS = [
   { label: "Today", href: "/today", icon: Sun },
   { label: "Calendar", href: "/calendar", icon: Calendar },
-  { label: "Workload", href: "/workload", icon: BarChart3 },
-  { label: "Analytics", href: "/analytics", icon: TrendingUp, desktopOnly: true },
   { label: "Deadlines", href: "/deadlines", icon: CheckSquare },
   { label: "Subjects", href: "/subjects", icon: BookOpen, desktopOnly: true },
   { label: "Inbox", href: "/inbox", icon: Inbox, desktopOnly: true },
+  { label: "Analytics", href: "/analytics", icon: TrendingUp, desktopOnly: true },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 

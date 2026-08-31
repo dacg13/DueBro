@@ -2,13 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { type Deadline, type Subject } from "@/types";
-import { assessAllDeadlinesRisk, detectWorkloadClusters } from "@/server/domain/risk";
+import { assessAllDeadlinesRisk } from "@/server/domain/risk";
 import { getDaysRemaining } from "@/server/domain/deadlines";
 import { toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
-import { WorkloadCapacityMeter } from "@/features/today/components/WorkloadCapacityMeter";
-import { ClusterWarningBanner } from "@/features/today/components/ClusterWarningBanner";
 import { TodayFocusCard } from "@/features/today/components/TodayFocusCard";
-import { QuickLogEffortModal } from "@/features/today/components/QuickLogEffortModal";
 import { DeadlineCard } from "@/components/shared/DeadlineCard";
 import { DeadlineDetailModal } from "@/features/deadlines/components/DeadlineDetailModal";
 import { AddDeadlineDialog } from "@/features/deadlines/components/AddDeadlineDialog";
@@ -21,6 +18,7 @@ import {
   Calendar,
   Plus,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -74,7 +72,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     priority: "high",
     status: "in_progress",
     progress: 60,
-    estimatedEffortHours: 4.0,
+    estimatedEffortHours: null,
     location: null,
     notes: "Submit PDF via Gradescope. Complete memoization analysis for problem 3.",
     tags: ["homework", "gradescope"],
@@ -98,7 +96,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     priority: "critical",
     status: "not_started",
     progress: 10,
-    estimatedEffortHours: 8.0,
+    estimatedEffortHours: null,
     location: "Hall B, Room 204",
     notes: "Closed book exam. 1 sheet handwritten notes permitted.",
     tags: ["midterm", "exam"],
@@ -122,7 +120,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     priority: "medium",
     status: "not_started",
     progress: 25,
-    estimatedEffortHours: 2.5,
+    estimatedEffortHours: null,
     location: "Physics Lab 102",
     notes: "Include error analysis and uncertainty propagation tables.",
     tags: ["lab"],
@@ -146,7 +144,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     priority: "low",
     status: "overdue",
     progress: 0,
-    estimatedEffortHours: 1.5,
+    estimatedEffortHours: null,
     location: null,
     notes: "Pages 359-389.",
     tags: ["reading"],
@@ -164,14 +162,9 @@ export default function TodayPage() {
   const [deadlines, setDeadlines] = useState<Deadline[]>(INITIAL_DEMO_DEADLINES);
   const [subjects] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
 
-  // Student configured capacity (default 2.0h weekday, 4.0h weekend)
-  const userCapacity = useMemo(() => ({ daily: 2.5, weekend: 4.0 }), []);
-
   // Modals state
   const [selectedDeadline, setSelectedDeadline] = useState<Deadline | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [logEffortDeadline, setLogEffortDeadline] = useState<Deadline | null>(null);
-  const [isLogEffortOpen, setIsLogEffortOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   // Subject lookup map
@@ -183,12 +176,7 @@ export default function TodayPage() {
 
   // Risk Engine batch assessments
   const riskMap = useMemo(() => {
-    return assessAllDeadlinesRisk(deadlines, userCapacity);
-  }, [deadlines, userCapacity]);
-
-  // Workload Congestion Clusters
-  const activeClusters = useMemo(() => {
-    return detectWorkloadClusters(deadlines);
+    return assessAllDeadlinesRisk(deadlines);
   }, [deadlines]);
 
   // Active deadlines (excluding deleted)
@@ -224,16 +212,9 @@ export default function TodayPage() {
     });
   }, [activeDeadlines]);
 
-  // Total planned study effort for today
-  const totalPlannedHoursToday = useMemo(() => {
-    let hours = 0;
-    for (const d of focusDeadlines) {
-      const effort = d.estimatedEffortHours ?? 2.0;
-      const remaining = effort * (1 - d.progress / 100);
-      hours += remaining;
-    }
-    return Number(hours.toFixed(1));
-  }, [focusDeadlines]);
+  const completedTodayCount = useMemo(() => {
+    return activeDeadlines.filter((d) => d.status === "completed").length;
+  }, [activeDeadlines]);
 
   // Quick complete toggle with optimistic state update
   const handleToggleComplete = async (id: string) => {
@@ -260,15 +241,6 @@ export default function TodayPage() {
     setIsDetailOpen(true);
   };
 
-  const handleOpenLogEffort = (deadline: Deadline) => {
-    setLogEffortDeadline(deadline);
-    setIsLogEffortOpen(true);
-  };
-
-  const handleProgressLogged = (updated: Deadline) => {
-    setDeadlines((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-  };
-
   const todayDateString = format(new Date(), "EEEE, MMMM d, yyyy");
 
   return (
@@ -277,13 +249,13 @@ export default function TodayPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">Today</h1>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20">
+            <h1 className="text-2xl font-bold tracking-tight text-signal-white">Today</h1>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-void-850 text-signal-white border border-white/10">
               Daily Planner
             </span>
           </div>
-          <p className="text-xs text-text-secondary mt-0.5">
-            {todayDateString} &bull; Intelligent focus &amp; workload pacing
+          <p className="text-xs text-mist-200 mt-0.5">
+            {todayDateString} &bull; Intelligent focus &amp; deadline intelligence
           </p>
         </div>
 
@@ -293,20 +265,32 @@ export default function TodayPage() {
         </Button>
       </div>
 
-      {/* Workload Capacity Meter */}
-      <WorkloadCapacityMeter
-        plannedHours={totalPlannedHoursToday}
-        capacityHours={userCapacity.daily}
-        taskCount={focusDeadlines.length}
-      />
-
-      {/* Workload Congestion Alert Banner (if multi-deadline congestion detected) */}
-      <ClusterWarningBanner clusters={activeClusters} />
+      {/* Summary Stat Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="p-4 rounded-2xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8">
+          <span className="text-xs text-mist-200 font-medium">Focus Tasks</span>
+          <p className="text-2xl font-bold text-signal-white mt-1 tabular-nums">
+            {focusDeadlines.length}
+          </p>
+        </div>
+        <div className="p-4 rounded-2xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8">
+          <span className="text-xs text-mist-200 font-medium">Overdue Tasks</span>
+          <p className={`text-2xl font-bold mt-1 tabular-nums ${overdueDeadlines.length > 0 ? "text-signal-danger drop-shadow-[0_0_8px_rgba(229,72,77,0.5)]" : "text-signal-white"}`}>
+            {overdueDeadlines.length}
+          </p>
+        </div>
+        <div className="col-span-2 sm:col-span-1 p-4 rounded-2xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8">
+          <span className="text-xs text-mist-200 font-medium">Completed</span>
+          <p className="text-2xl font-bold text-signal-white mt-1 tabular-nums">
+            {completedTodayCount}
+          </p>
+        </div>
+      </div>
 
       {/* Overdue Alert Section (High Urgency) */}
       {overdueDeadlines.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-risk-overdue uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-xs font-bold text-signal-danger uppercase tracking-wider">
             <AlertCircle className="w-4 h-4" />
             <span>Overdue &bull; Requires Attention ({overdueDeadlines.length})</span>
           </div>
@@ -319,7 +303,6 @@ export default function TodayPage() {
                 subject={deadline.subjectId ? subjectMap.get(deadline.subjectId) : null}
                 assessment={riskMap.get(deadline.id)}
                 onToggleComplete={handleToggleComplete}
-                onLogEffort={handleOpenLogEffort}
                 onClick={handleOpenDetail}
               />
             ))}
@@ -331,13 +314,13 @@ export default function TodayPage() {
       <div className="space-y-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <h3 className="text-sm font-bold text-text-primary">
+            <Sparkles className="w-4 h-4 text-signal-white" />
+            <h2 className="text-sm font-bold text-signal-white">
               Recommended Focus ({focusDeadlines.length})
-            </h3>
+            </h2>
           </div>
-          <span className="text-xs text-text-tertiary">
-            Prioritized by Risk Engine
+          <span className="text-xs text-graphite-300">
+            Prioritized by Risk Intelligence
           </span>
         </div>
 
@@ -358,7 +341,6 @@ export default function TodayPage() {
                 subject={deadline.subjectId ? subjectMap.get(deadline.subjectId) : null}
                 assessment={riskMap.get(deadline.id)}
                 onToggleComplete={handleToggleComplete}
-                onLogEffort={handleOpenLogEffort}
                 onClick={handleOpenDetail}
               />
             ))}
@@ -366,24 +348,26 @@ export default function TodayPage() {
         )}
       </div>
 
-      {/* Upcoming This Week Preview */}
+      {/* Upcoming This Week Section */}
       {upcomingThisWeek.length > 0 && (
-        <div className="space-y-3 pt-4 border-t border-border-default">
+        <div className="space-y-3.5 pt-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              <Calendar className="w-4 h-4 text-text-tertiary" />
-              <span>Upcoming This Week ({upcomingThisWeek.length})</span>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-graphite-300" />
+              <h2 className="text-sm font-bold text-signal-white">
+                Upcoming This Week ({upcomingThisWeek.length})
+              </h2>
             </div>
             <Link
               href="/deadlines"
-              className="text-xs text-accent hover:underline inline-flex items-center gap-1 font-medium"
+              className="text-xs text-mist-200 hover:text-signal-white flex items-center gap-1 transition-colors"
             >
               <span>View all</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {upcomingThisWeek.map((deadline) => (
               <DeadlineCard
                 key={deadline.id}
@@ -398,26 +382,14 @@ export default function TodayPage() {
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Deadline Detail Modal */}
       <DeadlineDetailModal
         deadline={selectedDeadline}
+        subject={selectedDeadline?.subjectId ? subjectMap.get(selectedDeadline.subjectId) : null}
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        subject={selectedDeadline?.subjectId ? subjectMap.get(selectedDeadline.subjectId) : null}
-        onEdit={(d) => {
-          setSelectedDeadline(d);
-          setIsAddOpen(true);
-        }}
-        onDeleteSuccess={(id) => setDeadlines((prev) => prev.filter((d) => d.id !== id))}
-      />
-
-      {/* Quick Log Effort Modal */}
-      <QuickLogEffortModal
-        deadline={logEffortDeadline}
-        subject={logEffortDeadline?.subjectId ? subjectMap.get(logEffortDeadline.subjectId) : null}
-        isOpen={isLogEffortOpen}
-        onClose={() => setIsLogEffortOpen(false)}
-        onSuccess={handleProgressLogged}
+        onToggleComplete={handleToggleComplete}
+        onEdit={() => {}}
       />
 
       {/* Add Deadline Dialog */}

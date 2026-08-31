@@ -20,7 +20,6 @@ import { getDaysRemaining } from "@/server/domain/deadlines";
 import { format, parseISO } from "date-fns";
 import {
   Calendar,
-  Sparkles,
   MapPin,
   Trash2,
   Edit2,
@@ -37,6 +36,7 @@ interface DeadlineDetailModalProps {
   subject?: Subject | null;
   onEdit: (deadline: Deadline) => void;
   onDeleteSuccess?: (id: string) => void;
+  onToggleComplete?: (id: string) => void;
 }
 
 export function DeadlineDetailModal({
@@ -46,6 +46,7 @@ export function DeadlineDetailModal({
   subject,
   onEdit,
   onDeleteSuccess,
+  onToggleComplete,
 }: DeadlineDetailModalProps) {
   const [subtasksList, setSubtasksList] = useState<Subtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
@@ -110,6 +111,7 @@ export function DeadlineDetailModal({
 
   const handleToggleComplete = async () => {
     setIsTogglingComplete(true);
+    onToggleComplete?.(deadline.id);
     await toggleDeadlineCompleteAction(deadline.id);
     setIsTogglingComplete(false);
     onClose();
@@ -194,28 +196,18 @@ export function DeadlineDetailModal({
         <ProgressBar progress={deadline.progress} variant="default" />
       </div>
 
-      {/* Estimated Effort & Location metadata */}
-      <div className="grid grid-cols-2 gap-3 text-xs">
-        <div className="p-3 rounded-xl bg-bg-surface border border-border-default flex items-center gap-2.5">
-          <Sparkles className="w-4 h-4 text-accent shrink-0" />
-          <div>
-            <div className="text-text-tertiary">Estimated Effort</div>
-            <div className="font-semibold text-text-primary">
-              {deadline.estimatedEffortHours ? `${deadline.estimatedEffortHours} Hours` : "Not specified"}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-3 rounded-xl bg-bg-surface border border-border-default flex items-center gap-2.5">
+      {/* Location metadata (if present) */}
+      {deadline.location && (
+        <div className="p-3 rounded-xl bg-bg-surface border border-border-default flex items-center gap-2.5 text-xs">
           <MapPin className="w-4 h-4 text-warning shrink-0" />
           <div>
             <div className="text-text-tertiary">Location / Room</div>
-            <div className="font-semibold text-text-primary truncate">
-              {deadline.location || "Online / None"}
+            <div className="font-semibold text-text-primary">
+              {deadline.location}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Notes */}
       {deadline.notes && (

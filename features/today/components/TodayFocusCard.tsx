@@ -5,8 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ProgressBar } from "@/components/shared/ProgressBar";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { getDaysRemaining } from "@/server/domain/deadlines";
-import { Button } from "@/components/ui/button";
-import { Clock, Timer, Sparkles } from "lucide-react";
+import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TodayFocusCardProps {
@@ -14,7 +13,6 @@ interface TodayFocusCardProps {
   subject?: Subject | null;
   assessment?: RiskAssessment | null;
   onToggleComplete?: (id: string) => void;
-  onLogEffort?: (deadline: Deadline) => void;
   onClick?: (deadline: Deadline) => void;
 }
 
@@ -23,7 +21,6 @@ export function TodayFocusCard({
   subject,
   assessment,
   onToggleComplete,
-  onLogEffort,
   onClick,
 }: TodayFocusCardProps) {
   const isCompleted = deadline.status === "completed";
@@ -37,9 +34,6 @@ export function TodayFocusCard({
     else if (days === 1) countdownText = "Due Tomorrow";
     else countdownText = `Due in ${days}d`;
   }
-
-  const effortHours = deadline.estimatedEffortHours ?? 2.0;
-  const remainingHours = Number((effortHours * (1 - deadline.progress / 100)).toFixed(1));
 
   return (
     <div
@@ -97,25 +91,23 @@ export function TodayFocusCard({
         {/* Risk Badge */}
         {assessment && (
           <div className="shrink-0">
-            <RiskBadge assessment={assessment} size="sm" showScore />
+            <RiskBadge assessment={assessment} size="sm" showScore={false} />
           </div>
         )}
       </div>
 
-      {/* Progress & Effort Readout */}
-      <div className="pl-8 space-y-1.5">
-        <div className="flex items-center justify-between text-xs text-mist-200">
-          <span className="flex items-center gap-1 tabular-nums">
-            <Sparkles className="w-3.5 h-3.5 text-signal-white" />
-            <span>{remainingHours}h remaining</span>
-            <span className="text-graphite-300">({effortHours}h total)</span>
-          </span>
-          <span className="tabular-nums font-semibold text-signal-white">{deadline.progress}%</span>
+      {/* Progress (if progress > 0 and not completed) */}
+      {deadline.progress > 0 && !isCompleted && (
+        <div className="pl-8 space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-mist-200">
+            <span>Progress:</span>
+            <span className="tabular-nums font-semibold text-signal-white">{deadline.progress}%</span>
+          </div>
+          <ProgressBar progress={deadline.progress} variant="default" />
         </div>
-        <ProgressBar progress={deadline.progress} variant="default" />
-      </div>
+      )}
 
-      {/* Footer: Due Date and Quick Log Button */}
+      {/* Footer: Due Date */}
       <div className="pl-8 pt-1 border-t border-white/6 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs text-mist-100/70 tabular-nums">
           <Clock className="w-3.5 h-3.5 text-graphite-300" />
@@ -131,23 +123,6 @@ export function TodayFocusCard({
             <span className="text-graphite-300">at {deadline.dueTime}</span>
           )}
         </div>
-
-        {/* Quick Log Action */}
-        {!isCompleted && onLogEffort && (
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={(e) => {
-              e.stopPropagation();
-              onLogEffort(deadline);
-            }}
-            className="h-7 text-xs px-2.5 gap-1.5 border-white/10 hover:bg-void-800 text-mist-100 hover:text-signal-white cursor-pointer"
-          >
-            <Timer className="w-3.5 h-3.5 text-signal-white" />
-            <span>Log Study Time</span>
-          </Button>
-        )}
       </div>
     </div>
   );

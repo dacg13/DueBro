@@ -127,7 +127,7 @@ export function DeadlineCard({
             {/* Risk Badge */}
             {assessment && (
               <div className="ml-auto">
-                <RiskBadge assessment={assessment} size="sm" showScore />
+                <RiskBadge assessment={assessment} size="sm" showScore={false} />
               </div>
             )}
           </div>

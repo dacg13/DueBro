@@ -12,11 +12,10 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await expect(input).toBeVisible();
 
     // Type bare-text task with NLP hints
-    await input.fill("Read operating systems chapter 5 by Friday 5pm 2h urgent");
+    await input.fill("Read operating systems chapter 5 by Friday 5pm urgent");
 
-    // Live NLP preview chips should detect Friday, 5pm, 2h, and critical priority
+    // Live NLP preview chips should detect Friday, 5pm, and critical priority
     await expect(page.getByText(/Detected:/i)).toBeVisible();
-    await expect(page.getByText(/2h effort/i)).toBeVisible();
     await expect(page.getByText(/Critical/i)).toBeVisible();
 
     // Submit via Capture submit button
@@ -26,26 +25,24 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await expect(page.getByText(/Read operating systems chapter 5/i)).toBeVisible();
   });
 
-  test("Flow 2: Today View focus card inspection & logging effort", async ({
+  test("Flow 2: Today View focus card inspection & quick-complete interaction", async ({
     page,
   }) => {
     await page.goto("/today");
     await page.waitForLoadState("domcontentloaded");
 
-    // Check Study Load meter is visible
-    await expect(page.getByText(/Today's Study Load/i)).toBeVisible();
-
-    // Check Today's Focus section
+    // Check Focus section and Stat Grid
+    await expect(page.getByText(/Focus Tasks/i)).toBeVisible();
     await expect(page.getByText(/Recommended Focus/i)).toBeVisible();
 
-    // Verify at least one task card exists with remaining effort
-    const logBtn = page.getByRole("button", { name: /Log Study Time/i }).first();
-    await expect(logBtn).toBeVisible();
-    await logBtn.click();
-    
-    // Quick log modal/sheet should open with title "Log Study Progress"
-    await expect(page.getByRole("heading", { name: /Log Study Progress/i }).first()).toBeVisible({ timeout: 5000 });
-    await page.getByRole("button", { name: /Cancel/i }).first().click();
+    // Verify at least one task card exists
+    const taskCard = page.getByText(/Dynamic Programming Problem Set 4/i).first();
+    await expect(taskCard).toBeVisible();
+
+    // Click card to open detail modal
+    await taskCard.click();
+    await expect(page.getByText("Progress", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: /Close/i }).click();
   });
 
   test("Flow 3: Calendar Month & Week View switching and Rescheduling modal", async ({
@@ -62,21 +59,18 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     await expect(page.getByText("Sun", { exact: true })).toBeVisible();
   });
 
-  test("Flow 4: Workload Capacity Tuner real-time adjustment", async ({
+  test("Flow 4: 14-Day Roadmap upcoming schedule inspection", async ({
     page,
   }) => {
     await page.goto("/workload");
     await page.waitForLoadState("domcontentloaded");
 
-    // Check 14-Day Timeline is visible
-    await expect(page.getByText(/14-Day Study Pacing Timeline/i)).toBeVisible();
-
-    // Check Capacity Tuner sliders
-    await expect(page.getByText(/Weekday Max Study Load/i)).toBeVisible();
-    await expect(page.getByText(/Weekend Max Study Load/i)).toBeVisible();
+    // Check 14-Day Roadmap title is visible
+    await expect(page.getByText(/14-Day Roadmap/i)).toBeVisible();
+    await expect(page.getByText(/Upcoming Schedule/i)).toBeVisible();
   });
 
-  test("Flow 5: Analytics and Study Insights dashboard", async ({
+  test("Flow 5: Analytics and Coursework Insights dashboard", async ({
     page,
   }) => {
     await page.goto("/analytics");
@@ -85,7 +79,7 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
     // Check stat cards
     await expect(page.getByText(/Overall Completion Rate/i)).toBeVisible();
     await expect(page.getByText("On-Time Punctuality", { exact: true })).toBeVisible();
-    await expect(page.getByText(/Remaining Study Effort/i)).toBeVisible();
+    await expect(page.getByText(/Active Deadlines/i)).toBeVisible();
 
     // Check Risk and Subject charts
     await expect(page.getByText(/Workload Risk Distribution/i)).toBeVisible();

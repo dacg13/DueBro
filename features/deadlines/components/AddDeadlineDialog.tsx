@@ -235,30 +235,17 @@ export function AddDeadlineDialog({
         <button
           type="button"
           onClick={() => setShowMoreDetails(!showMoreDetails)}
-          className="w-full flex items-center justify-between p-3.5 text-xs font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          className="w-full p-3.5 flex items-center justify-between text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
         >
           <div className="flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-accent" />
-            <span>Estimated Effort, Location & Notes</span>
+            <span>Room Location, Notes &amp; Recurrence</span>
           </div>
           {showMoreDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
 
         {showMoreDetails && (
           <div className="p-3.5 pt-0 space-y-3 border-t border-border-default/50">
-            <div>
-              <label htmlFor="effort-hours" className="block text-xs font-medium text-text-secondary mb-1.5">
-                Estimated Effort (Hours) — Powers Risk Engine
-              </label>
-              <Input
-                id="effort-hours"
-                type="number"
-                step="0.5"
-                min="0"
-                placeholder="e.g. 4.5"
-                {...register("estimatedEffortHours", { valueAsNumber: true })}
-              />
-            </div>
 
             {selectedType === "exam" || selectedType === "presentation" ? (
               <div>

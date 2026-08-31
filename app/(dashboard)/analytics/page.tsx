@@ -8,12 +8,11 @@ import { RiskBreakdownChart } from "@/features/analytics/components/RiskBreakdow
 import { SubjectEffortChart } from "@/features/analytics/components/SubjectEffortChart";
 import {
   CheckCircle2,
-  Clock,
-  BarChart2,
   TrendingUp,
+  ListTodo,
+  Sparkles,
 } from "lucide-react";
 
-// Initial demonstration data
 const INITIAL_DEMO_SUBJECTS: Subject[] = [
   {
     id: "sub-cs101",
@@ -58,12 +57,12 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     termId: "term-1",
     title: "Dynamic Programming Problem Set 4",
     type: "assignment",
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0],
+    dueDate: new Date().toISOString().split("T")[0],
     dueTime: "23:59",
     priority: "high",
     status: "in_progress",
-    progress: 50,
-    estimatedEffortHours: 4.5,
+    progress: 60,
+    estimatedEffortHours: null,
     location: null,
     notes: null,
     tags: [],
@@ -82,12 +81,12 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     termId: "term-1",
     title: "Midterm Exam: Vector Spaces",
     type: "exam",
-    dueDate: new Date(Date.now() + 86400000 * 5).toISOString().split("T")[0],
+    dueDate: new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0],
     dueTime: "10:00",
     priority: "critical",
     status: "not_started",
     progress: 10,
-    estimatedEffortHours: 8.0,
+    estimatedEffortHours: null,
     location: "Hall B, Room 204",
     notes: null,
     tags: [],
@@ -111,14 +110,14 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     priority: "medium",
     status: "completed",
     progress: 100,
-    estimatedEffortHours: 3.0,
+    estimatedEffortHours: null,
     location: "Physics Lab 102",
     notes: null,
     tags: [],
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
-    completedAt: new Date(Date.now() - 86400000 * 3), // completed on time
+    completedAt: new Date(Date.now() - 86400000 * 3),
     deletedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -135,7 +134,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     priority: "high",
     status: "not_started",
     progress: 0,
-    estimatedEffortHours: 6.0,
+    estimatedEffortHours: null,
     location: null,
     notes: null,
     tags: [],
@@ -153,7 +152,6 @@ export default function AnalyticsPage() {
   const [deadlines] = useState<Deadline[]>(INITIAL_DEMO_DEADLINES);
   const [subjects] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
 
-  // Pure domain analytics calculation
   const analytics = useMemo(() => {
     return calculateStudyAnalytics(deadlines, subjects);
   }, [deadlines, subjects]);
@@ -164,15 +162,15 @@ export default function AnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-              Study Insights &amp; Analytics
+            <h1 className="text-2xl font-bold tracking-tight text-signal-white">
+              Coursework &amp; Performance Insights
             </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20">
-              V1.5 Insights
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-void-850 text-signal-white border border-white/10">
+              Analytics
             </span>
           </div>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Track completion velocity, on-time punctuality, and effort distributions across courses.
+          <p className="text-xs text-mist-200 mt-0.5">
+            Track completion velocity, on-time punctuality, and coursework distribution.
           </p>
         </div>
       </div>
@@ -190,24 +188,24 @@ export default function AnalyticsPage() {
         <AnalyticsStatCard
           title="On-Time Punctuality"
           value={`${analytics.onTimeRatePercent}%`}
-          subtitle="Completed prior to deadline time"
+          subtitle="Completed prior to deadline"
           icon={TrendingUp}
           variant="accent"
         />
 
         <AnalyticsStatCard
-          title="Remaining Study Effort"
-          value={`${analytics.remainingEffortHours}h`}
-          subtitle={`Across ${analytics.activeDeadlines} active deadlines`}
-          icon={Clock}
-          variant={analytics.remainingEffortHours > 10 ? "warning" : "default"}
+          title="Active Deadlines"
+          value={`${analytics.activeDeadlines}`}
+          subtitle="Incomplete tasks pending"
+          icon={ListTodo}
+          variant="default"
         />
 
         <AnalyticsStatCard
-          title="Avg Effort Per Task"
-          value={`${analytics.averageEffortPerTask}h`}
-          subtitle="Estimated time per coursework"
-          icon={BarChart2}
+          title="Completed Coursework"
+          value={`${analytics.completedDeadlines}`}
+          subtitle="Successfully submitted"
+          icon={Sparkles}
           variant="default"
         />
       </div>
@@ -218,7 +216,7 @@ export default function AnalyticsPage() {
         totalActiveTasks={analytics.activeDeadlines}
       />
 
-      {/* Course Effort Breakdown */}
+      {/* Course Breakdown */}
       <SubjectEffortChart summaries={analytics.subjectSummaries} />
     </div>
   );
