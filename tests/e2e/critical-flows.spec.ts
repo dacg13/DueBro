@@ -41,7 +41,7 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
 
     // Click card to open detail modal
     await taskCard.click();
-    await expect(page.getByText("Progress", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Subtasks & Milestones/i)).toBeVisible();
     await page.getByRole("button", { name: /Close/i }).click();
   });
 

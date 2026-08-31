@@ -2,7 +2,6 @@
 
 import { type Deadline, type Subject, type RiskAssessment } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { getDaysRemaining } from "@/server/domain/deadlines";
 import { Clock } from "lucide-react";
@@ -95,17 +94,6 @@ export function TodayFocusCard({
           </div>
         )}
       </div>
-
-      {/* Progress (if progress > 0 and not completed) */}
-      {deadline.progress > 0 && !isCompleted && (
-        <div className="pl-8 space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-mist-200">
-            <span>Progress:</span>
-            <span className="tabular-nums font-semibold text-signal-white">{deadline.progress}%</span>
-          </div>
-          <ProgressBar progress={deadline.progress} variant="default" />
-        </div>
-      )}
 
       {/* Footer: Due Date */}
       <div className="pl-8 pt-1 border-t border-white/6 flex items-center justify-between gap-2 flex-wrap">

@@ -2,7 +2,6 @@
 
 import { type Deadline, type Priority, type DeadlineType, type Subject, type RiskAssessment } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { getDaysRemaining } from "@/server/domain/deadlines";
 import {
@@ -143,12 +142,7 @@ export function DeadlineCard({
         </div>
       </div>
 
-      {/* Progress Bar (if progress > 0 and not completed) */}
-      {deadline.progress > 0 && !isCompleted && (
-        <div className="pl-8">
-          <ProgressBar progress={deadline.progress} variant="thin" showLabel />
-        </div>
-      )}
+
 
       {/* Card Footer: Due Countdown and Priority */}
       <div className="pl-8 flex items-center justify-between text-xs text-mist-100/70 pt-1 border-t border-white/6">

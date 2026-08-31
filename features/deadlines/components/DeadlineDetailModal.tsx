@@ -15,7 +15,6 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { getDaysRemaining } from "@/server/domain/deadlines";
 import { format, parseISO } from "date-fns";
 import {
@@ -187,14 +186,7 @@ export function DeadlineDetailModal({
         )}
       </div>
 
-      {/* Progress Section */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-medium">
-          <span className="text-text-secondary">Progress</span>
-          <span className="text-text-primary tabular-nums">{deadline.progress}%</span>
-        </div>
-        <ProgressBar progress={deadline.progress} variant="default" />
-      </div>
+
 
       {/* Location metadata (if present) */}
       {deadline.location && (

@@ -2,7 +2,6 @@
 
 import { type Deadline, type Priority, type DeadlineType, type Subject, type RiskAssessment } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { getDaysRemaining } from "@/server/domain/deadlines";
 import { format, parseISO } from "date-fns";
@@ -121,12 +120,7 @@ export function DeadlineRow({
         </span>
       </div>
 
-      {/* Progress (if applicable) */}
-      {deadline.progress > 0 && !isCompleted && (
-        <div className="w-24 hidden md:block shrink-0">
-          <ProgressBar progress={deadline.progress} variant="thin" showLabel />
-        </div>
-      )}
+
 
       {/* Risk Badge (Desktop) */}
       {assessment && (
