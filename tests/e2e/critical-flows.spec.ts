@@ -37,9 +37,7 @@ test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
 
     // Verify at least one task card exists
     const taskCard = page.getByText(/Dynamic Programming Problem Set 4/i).first();
-    await expect(taskCard).toBeVisible();
-
-    // Click card to open detail modal
+    await taskCard.scrollIntoViewIfNeeded();
     await taskCard.click();
     await expect(page.getByText(/Subtasks & Milestones/i)).toBeVisible();
     await page.getByRole("button", { name: /Close/i }).click();

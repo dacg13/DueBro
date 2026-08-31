@@ -2,15 +2,13 @@
 
 import { useMemo } from "react";
 import { type Deadline, type Subject, type RiskAssessment } from "@/types";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RiskBadge } from "@/components/shared/RiskBadge";
 import {
   startOfWeek,
   addDays,
   format,
   isToday,
 } from "date-fns";
-import { Flame, Plus, CalendarClock, Clock } from "lucide-react";
+import { Plus, CalendarClock, Clock, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WeekCalendarViewProps {
@@ -52,160 +50,181 @@ export function WeekCalendarView({
   }, [deadlines]);
 
   return (
-    <div className="rounded-2xl bg-bg-surface border border-border-default overflow-hidden">
+    <div className="rounded-2xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8 overflow-hidden shadow-2xl">
       {/* 7 Columns Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-border-default">
+      <div className="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-white/6">
         {weekDays.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
           const isDayToday = isToday(day);
           const dayDeadlines = deadlinesByDate.get(dateStr) || [];
 
-          // Compute total scheduled effort for the day
-          const totalEffort = dayDeadlines.reduce((acc, d) => {
-            const effort = d.estimatedEffortHours ?? 2.0;
-            return acc + effort * (1 - d.progress / 100);
-          }, 0);
-
-          const isHeavy = totalEffort > 4.0 || dayDeadlines.length >= 3;
-
           return (
             <div
               key={dateStr}
               className={cn(
-                "flex flex-col min-h-[360px] p-3 transition-colors",
-                isDayToday && "bg-accent-subtle/10",
-                isHeavy && "bg-warning/5"
+                "flex flex-col min-h-[440px] p-2.5 transition-colors relative group/col",
+                isDayToday ? "bg-white/[0.03]" : "hover:bg-white/[0.015]"
               )}
             >
-              {/* Column Header */}
-              <div className="pb-3 mb-3 border-b border-border-default space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-                    {format(day, "EEE")}
-                  </span>
-                  {dayDeadlines.length >= 3 && (
-                    <span
-                      title={`${dayDeadlines.length} deadlines scheduled`}
-                      className="flex items-center gap-0.5 text-[10px] font-bold text-warning tabular-nums"
-                    >
-                      <Flame className="w-3 h-3" />
-                      <span>{dayDeadlines.length}</span>
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between">
+              {/* Clean Column Header */}
+              <div className="pb-2.5 mb-2.5 border-b border-white/6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "text-lg font-bold tabular-nums w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                      "text-sm font-bold tabular-nums w-7 h-7 rounded-full flex items-center justify-center transition-all",
                       isDayToday
-                        ? "bg-signal-white text-void-950 shadow-[0_0_12px_rgba(250,250,252,0.4)]"
+                        ? "bg-signal-white text-void-950 shadow-[0_0_16px_rgba(250,250,252,0.4)]"
                         : "text-signal-white"
                     )}
                   >
                     {format(day, "d")}
                   </span>
-
-                  <span className="text-[11px] text-text-tertiary tabular-nums font-medium">
-                    {dayDeadlines.length} task{dayDeadlines.length === 1 ? "" : "s"}
-                  </span>
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-mist-200 block leading-tight">
+                      {format(day, "EEE")}
+                    </span>
+                    <span className="text-[10px] text-mist-200/70 tabular-nums">
+                      {dayDeadlines.length > 0
+                        ? `${dayDeadlines.length} task${dayDeadlines.length === 1 ? "" : "s"}`
+                        : "No tasks"}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Quick Add Button in Header */}
+                <button
+                  type="button"
+                  onClick={() => onAddDeadlineForDate(dateStr)}
+                  className="w-6 h-6 rounded-lg text-mist-200/60 hover:text-signal-white hover:bg-white/10 flex items-center justify-center transition-all opacity-0 group-hover/col:opacity-100 cursor-pointer"
+                  title={`Add task for ${format(day, "MMM d")}`}
+                  aria-label={`Add task for ${format(day, "MMM d")}`}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
 
               {/* Deadlines List */}
-              <div className="space-y-2 flex-1 overflow-y-auto max-h-[480px]">
+              <div className="space-y-2 flex-1 overflow-y-auto">
                 {dayDeadlines.map((dl) => {
                   const subject = dl.subjectId ? subjectMap.get(dl.subjectId) : null;
                   const subjectColor = subject?.color || "#5B6EF5";
                   const isCompleted = dl.status === "completed";
                   const assessment = riskMap.get(dl.id);
+                  const isCritical = assessment?.tier === "critical" || assessment?.tier === "high";
 
                   return (
                     <div
                       key={dl.id}
                       onClick={() => onOpenDeadlineDetail(dl)}
                       className={cn(
-                        "p-3 rounded-xl bg-bg-elevated border border-border-default hover:border-border-hover transition-all cursor-pointer space-y-2 group relative overflow-hidden",
-                        isCompleted && "opacity-60 line-through bg-bg-surface/50",
-                        assessment?.tier === "critical" && "border-risk-critical/40 bg-risk-critical/5"
+                        "p-2.5 rounded-xl bg-void-900/70 hover:bg-void-850 border border-white/8 hover:border-white/20 transition-all duration-150 cursor-pointer group/card relative overflow-hidden flex flex-col justify-between gap-2",
+                        isCompleted && "opacity-50 bg-void-950/40",
+                        isCritical && !isCompleted && "border-red-500/30 bg-red-950/10 hover:border-red-500/50"
                       )}
                     >
-                      {/* Subject Color Pill */}
+                      {/* Left Subject Color Accent Bar */}
                       <div
-                        className="absolute left-0 top-0 bottom-0 w-1"
+                        className="absolute left-0 top-0 bottom-0 w-1 rounded-l"
                         style={{ backgroundColor: subjectColor }}
                       />
 
-                      {/* Header: Checkbox + Title */}
-                      <div className="flex items-start gap-2 min-w-0">
-                        <div onClick={(e) => e.stopPropagation()} className="pt-0.5 shrink-0">
-                          <Checkbox
-                            checked={isCompleted}
-                            onCheckedChange={() => onToggleComplete(dl.id)}
-                            aria-label={`Mark ${dl.title}`}
-                          />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-1 mb-0.5">
-                            {subject && (
-                              <span
-                                className="text-[10px] font-semibold px-1.5 py-0.2 rounded truncate"
-                                style={{ backgroundColor: `${subjectColor}20`, color: subjectColor }}
-                              >
-                                {subject.name}
-                              </span>
-                            )}
-                            {assessment && !isCompleted && (
-                              <RiskBadge assessment={assessment} size="sm" />
-                            )}
-                          </div>
-                          <h5 className="text-xs font-semibold text-text-primary leading-tight line-clamp-2">
-                            {dl.title}
-                          </h5>
-                        </div>
-                      </div>
-
-                      {/* Footer: Due Time + Reschedule Button */}
-                      <div className="flex items-center justify-between pt-1 border-t border-border-default/50 text-[11px] text-text-tertiary">
-                        {dl.dueTime ? (
-                          <span className="flex items-center gap-1 tabular-nums">
-                            <Clock className="w-3 h-3 text-text-tertiary" />
-                            {dl.dueTime}
+                      {/* Header row: Subject Tag + Status / Priority Indicator */}
+                      <div className="flex items-center justify-between gap-1 pl-1">
+                        {subject ? (
+                          <span
+                            className="text-[10px] font-semibold px-1.5 py-0.2 rounded truncate max-w-[90px]"
+                            style={{
+                              backgroundColor: `${subjectColor}20`,
+                              color: subjectColor,
+                            }}
+                          >
+                            {subject.name}
                           </span>
                         ) : (
-                          <span>All day</span>
+                          <span className="text-[10px] text-mist-200">General</span>
                         )}
 
-                        {/* Accessible Reschedule Trigger (WCAG 2.2 Dragging Alternative) */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onReschedule(dl);
-                          }}
-                          className="p-1 rounded-md text-text-tertiary hover:text-accent hover:bg-accent-subtle transition-colors cursor-pointer"
-                          title="Reschedule to another day (WCAG 2.2 accessible fallback)"
-                          aria-label={`Reschedule ${dl.title}`}
-                        >
-                          <CalendarClock className="w-3.5 h-3.5" />
-                        </button>
+                        {/* Urgent dot if high/critical */}
+                        {isCritical && !isCompleted && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_6px_rgba(239,68,68,0.8)] shrink-0"
+                            title="High Priority / Urgent"
+                          />
+                        )}
+                      </div>
+
+                      {/* Task Title */}
+                      <h5
+                        className={cn(
+                          "text-xs font-semibold text-signal-white leading-snug pl-1 line-clamp-2",
+                          isCompleted && "line-through text-mist-200"
+                        )}
+                      >
+                        {dl.title}
+                      </h5>
+
+                      {/* Footer: Due Time + Quick Actions */}
+                      <div className="flex items-center justify-between pt-1 border-t border-white/6 text-[10px] text-mist-200 pl-1">
+                        <span className="flex items-center gap-1 tabular-nums font-medium">
+                          {dl.dueTime ? (
+                            <>
+                              <Clock className="w-3 h-3 text-mist-200/80" />
+                              {dl.dueTime}
+                            </>
+                          ) : (
+                            "All day"
+                          )}
+                        </span>
+
+                        {/* Actions (Complete & Reschedule) */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleComplete(dl.id);
+                            }}
+                            className={cn(
+                              "w-5 h-5 rounded-md flex items-center justify-center transition-all cursor-pointer",
+                              isCompleted
+                                ? "bg-signal-white text-void-950"
+                                : "text-mist-200/60 hover:text-signal-white hover:bg-white/10"
+                            )}
+                            title={isCompleted ? "Mark incomplete" : "Mark complete"}
+                            aria-label={`Complete ${dl.title}`}
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onReschedule(dl);
+                            }}
+                            className="w-5 h-5 rounded-md text-mist-200/60 hover:text-signal-white hover:bg-white/10 flex items-center justify-center transition-all cursor-pointer"
+                            title="Reschedule task"
+                            aria-label={`Reschedule ${dl.title}`}
+                          >
+                            <CalendarClock className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
-              </div>
 
-              {/* Add Deadline Button at bottom of column */}
-              <div className="pt-2 mt-auto border-t border-border-default/60">
-                <button
-                  type="button"
-                  onClick={() => onAddDeadlineForDate(dateStr)}
-                  className="w-full py-1.5 rounded-lg border border-dashed border-border-default hover:border-accent hover:bg-accent-subtle/20 text-text-tertiary hover:text-accent text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Task</span>
-                </button>
+                {/* Empty State Action for Column */}
+                {dayDeadlines.length === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onAddDeadlineForDate(dateStr)}
+                    className="w-full h-24 rounded-xl border border-dashed border-white/8 hover:border-white/20 hover:bg-white/[0.02] text-mist-200/40 hover:text-signal-white text-[11px] font-medium flex flex-col items-center justify-center gap-1 transition-all cursor-pointer group/empty"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-mist-200/40 group-hover/empty:text-signal-white group-hover/empty:scale-110 transition-transform" />
+                    <span>Add deadline</span>
+                  </button>
+                )}
               </div>
             </div>
           );
