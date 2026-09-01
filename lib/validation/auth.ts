@@ -44,6 +44,8 @@ export const notificationPreferencesSchema = z.object({
   exam: channelPreferenceSchema,
   digest: channelPreferenceSchema,
   workload: channelPreferenceSchema,
+  shared_deadline_added: channelPreferenceSchema,
+  shared_deadline_edited: channelPreferenceSchema,
 });
 
 export type NotificationPreferencesInput = z.infer<typeof notificationPreferencesSchema>;

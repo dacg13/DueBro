@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -21,7 +21,11 @@ import {
   Smartphone,
   Mail,
   Calendar,
+  Users,
 } from "lucide-react";
+import { FriendsManagerDialog } from "@/features/friends/components/FriendsManagerDialog";
+import { AcceptInviteDialog } from "@/features/class-groups/components/AcceptInviteDialog";
+import { getPendingGroupInvitesAction, type PendingGroupInvite } from "@/server/actions/class-groups";
 
 export default function SettingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +34,18 @@ export default function SettingsPage() {
   const [quietHoursEnabled, setQuietHoursEnabled] = useState<boolean>(true);
   const [quietStart, setQuietStart] = useState<string>("22:00");
   const [quietEnd, setQuietEnd] = useState<string>("08:00");
+
+  // Friends & Groups
+  const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<PendingGroupInvite[]>([]);
+  const [selectedInvite, setSelectedInvite] = useState<PendingGroupInvite | null>(null);
+  const [isAcceptInviteOpen, setIsAcceptInviteOpen] = useState(false);
+
+  useEffect(() => {
+    getPendingGroupInvitesAction().then((res) => {
+      if (res.data) setPendingInvites(res.data);
+    });
+  }, []);
 
   const {
     handleSubmit,
@@ -44,6 +60,8 @@ export default function SettingsPage() {
       exam: { push: true, email: true },
       digest: { push: true, email: false },
       workload: { push: true, email: false },
+      shared_deadline_added: { push: true, email: true },
+      shared_deadline_edited: { push: false, email: false },
     },
   });
 
@@ -75,6 +93,8 @@ export default function SettingsPage() {
     { key: "exam" as const, label: "Exam Urgency Countdown", desc: "7 days, 1 day, and 2 hours exam countdowns" },
     { key: "digest" as const, label: "Daily Morning Digest", desc: "Daily summary of today's scheduled tasks" },
     { key: "workload" as const, label: "Congestion Alerts", desc: "When 3+ deadlines cluster into a 3-day window" },
+    { key: "shared_deadline_added" as const, label: "Shared Deadline Added", desc: "When a group member adds a new shared deadline" },
+    { key: "shared_deadline_edited" as const, label: "Shared Deadline Edited", desc: "When a group member edits a shared deadline's core details" },
   ];
 
   return (
@@ -93,6 +113,58 @@ export default function SettingsPage() {
           <span>{successMsg}</span>
         </div>
       )}
+
+      {/* Friends & Study Network Section */}
+      <div className="rounded-2xl bg-graphite-600/18 backdrop-blur-[20px] border border-white/8 p-5 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-white/8">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-void-850 text-signal-white flex items-center justify-center border border-white/10">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-signal-white">Friends & Study Network</h2>
+              <p className="text-xs text-mist-200">
+                Add friends, create class groups, and share deadlines.
+              </p>
+            </div>
+          </div>
+          <Button onClick={() => setIsFriendsOpen(true)} className="gap-1.5">
+            <Users className="w-3.5 h-3.5" />
+            Manage Friends
+          </Button>
+        </div>
+
+        {/* Pending Group Invites */}
+        {pendingInvites.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-xs font-semibold text-mist-200 uppercase tracking-wider">Pending Group Invites</h4>
+            {pendingInvites.map((pi) => (
+              <button
+                key={pi.invite.id}
+                type="button"
+                onClick={() => {
+                  setSelectedInvite(pi);
+                  setIsAcceptInviteOpen(true);
+                }}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-void-900/60 border border-accent/15 hover:border-accent/30 transition-colors cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-accent-subtle border border-accent/20 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-signal-white">{pi.groupName}</p>
+                    <p className="text-[11px] text-mist-200">
+                      From {pi.invitedByName || "a classmate"} · {pi.memberCount} members
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[11px] text-accent font-medium">Respond →</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Section 1: Multi-Channel Delivery Grid */}
@@ -338,6 +410,21 @@ export default function SettingsPage() {
           Sign Out
         </Button>
       </div>
+
+      {/* Friends Manager Dialog */}
+      <FriendsManagerDialog isOpen={isFriendsOpen} onClose={() => setIsFriendsOpen(false)} />
+
+      {/* Accept Invite Dialog */}
+      <AcceptInviteDialog
+        isOpen={isAcceptInviteOpen}
+        onClose={() => setIsAcceptInviteOpen(false)}
+        invite={selectedInvite}
+        subjects={[]}
+        onSuccess={() => {
+          setPendingInvites((prev) => prev.filter((pi) => pi.invite.id !== selectedInvite?.invite.id));
+          setSelectedInvite(null);
+        }}
+      />
     </div>
   );
 }

@@ -14,7 +14,9 @@ import { Select } from "@/components/ui/select";
 import { PrioritySelector } from "@/components/shared/PrioritySelector";
 import { RecurrenceSelector } from "./RecurrenceSelector";
 import { type RecurrenceRuleInput } from "@/lib/validation/recurrence";
-import { ChevronDown, ChevronUp, Loader2, Bell, Sparkles, MapPin } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { getClassGroupsAction, createSharedDeadlineAction, type ClassGroupWithMemberCount } from "@/server/actions/class-groups";
+import { ChevronDown, ChevronUp, Loader2, Bell, Sparkles, MapPin, Users } from "lucide-react";
 
 interface AddDeadlineDialogProps {
   isOpen: boolean;
@@ -39,6 +41,8 @@ export function AddDeadlineDialog({
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRuleInput | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [classGroups, setClassGroups] = useState<ClassGroupWithMemberCount[]>([]);
+  const [alsoShareWithGroup, setAlsoShareWithGroup] = useState(false);
 
   // Detect mobile viewport
   const [isMobile, setIsMobile] = useState(false);
@@ -75,10 +79,17 @@ export function AddDeadlineDialog({
 
   const selectedType = useWatch({ control, name: "type", defaultValue: "assignment" });
   const watchDueDate = useWatch({ control, name: "dueDate", defaultValue: "" });
+  const watchSubjectId = useWatch({ control, name: "subjectId", defaultValue: "" });
+
+  const mappedGroup = classGroups.find((g) => g.mySubjectId === watchSubjectId);
 
   // Reset form when initialData or open state changes
   useEffect(() => {
     if (isOpen) {
+      setAlsoShareWithGroup(false);
+      getClassGroupsAction().then((res) => {
+        if (res.data) setClassGroups(res.data);
+      });
       if (initialData) {
         reset({
           title: initialData.title,
@@ -126,6 +137,22 @@ export function AddDeadlineDialog({
           return;
         }
         if (res.data) onSuccess?.(res.data);
+      } else if (alsoShareWithGroup && mappedGroup && data.dueDate) {
+        // Shared deadline creation: creates template and fans out automatically
+        const res = await createSharedDeadlineAction({
+          classGroupId: mappedGroup.group.id,
+          title: data.title,
+          type: data.type,
+          dueDate: data.dueDate,
+          dueTime: data.dueTime || null,
+          location: data.location || null,
+          sharedNotes: data.notes || null,
+        });
+        if (!res.success) {
+          setErrorMsg(res.error || "Failed to create shared deadline");
+          setIsSubmitting(false);
+          return;
+        }
       } else {
         const res = await createDeadlineAction(data);
         if (!res.success) {
@@ -196,6 +223,24 @@ export function AddDeadlineDialog({
             {errors.subjectId && <p className="text-error text-xs mt-1">{errors.subjectId.message}</p>}
           </div>
         </div>
+
+        {/* Off-by-default Share with Class Group toggle */}
+        {mappedGroup && !isEditing && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent-subtle/30 border border-accent/20">
+            <Checkbox
+              id="share-with-group"
+              checked={alsoShareWithGroup}
+              onCheckedChange={(checked) => setAlsoShareWithGroup(!!checked)}
+            />
+            <label
+              htmlFor="share-with-group"
+              className="text-xs font-medium text-signal-white flex items-center gap-1.5 cursor-pointer select-none"
+            >
+              <Users className="w-3.5 h-3.5 text-accent" />
+              <span>Also share with <strong>{mappedGroup.group.name}</strong> ({mappedGroup.memberCount} members)</span>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Section 2: Due Date & Time (Required - Always Visible) */}

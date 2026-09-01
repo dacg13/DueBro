@@ -93,6 +93,7 @@ export function QuickCaptureWidget({
           links: [],
           recurrenceRuleId: null,
           originalOccurrenceDate: null,
+          sharedDeadlineId: null,
           completedAt: null,
           deletedAt: null,
           createdAt: new Date(),

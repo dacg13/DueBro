@@ -50,6 +50,7 @@ describe("Academic & Study Workload Analytics Engine (V1.5)", () => {
       links: [],
       recurrenceRuleId: null,
       originalOccurrenceDate: null,
+      sharedDeadlineId: null,
       completedAt: new Date("2026-10-09T18:00:00Z"), // Completed before due date
       deletedAt: null,
       createdAt: new Date(),
@@ -74,6 +75,7 @@ describe("Academic & Study Workload Analytics Engine (V1.5)", () => {
       links: [],
       recurrenceRuleId: null,
       originalOccurrenceDate: null,
+      sharedDeadlineId: null,
       completedAt: new Date("2026-10-07T12:00:00Z"), // Completed after due date
       deletedAt: null,
       createdAt: new Date(),
@@ -98,6 +100,7 @@ describe("Academic & Study Workload Analytics Engine (V1.5)", () => {
       links: [],
       recurrenceRuleId: null,
       originalOccurrenceDate: null,
+      sharedDeadlineId: null,
       completedAt: null,
       deletedAt: null,
       createdAt: new Date(),
@@ -122,6 +125,7 @@ describe("Academic & Study Workload Analytics Engine (V1.5)", () => {
       links: [],
       recurrenceRuleId: null,
       originalOccurrenceDate: null,
+      sharedDeadlineId: null,
       completedAt: null,
       deletedAt: null,
       createdAt: new Date(),

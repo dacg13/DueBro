@@ -7,3 +7,5 @@ export * from "./reminders";
 export * from "./recurrence";
 export * from "./scheduling";
 export * from "./analytics";
+export * from "./friendships";
+export * from "./class-groups";

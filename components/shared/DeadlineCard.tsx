@@ -15,6 +15,7 @@ import {
   Upload,
   BookMarked,
   Clock,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -122,6 +123,14 @@ export function DeadlineCard({
               <TypeIcon className="w-3 h-3 text-graphite-300" />
               {deadline.type.replace("_", " ")}
             </span>
+
+            {/* Shared indicator */}
+            {deadline.sharedDeadlineId && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-accent" title="Shared deadline">
+                <Users className="w-3 h-3" />
+                <span className="hidden sm:inline">Shared</span>
+              </span>
+            )}
 
             {/* Risk Badge */}
             {assessment && (

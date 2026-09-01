@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { type Subject, type AcademicTerm, type Deadline } from "@/types";
 import { SubjectCard } from "@/features/subjects/components/SubjectCard";
 import { AddSubjectDialog } from "@/features/subjects/components/AddSubjectDialog";
 import { SubjectDetailModal } from "@/features/subjects/components/SubjectDetailModal";
 import { AcademicTermsDialog } from "@/features/academic-terms/components/AcademicTermsDialog";
 import { AddDeadlineDialog } from "@/features/deadlines/components/AddDeadlineDialog";
+import { CreateClassGroupDialog } from "@/features/class-groups/components/CreateClassGroupDialog";
+import { getClassGroupsAction, type ClassGroupWithMemberCount } from "@/server/actions/class-groups";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { resolveCurrentTerm } from "@/server/domain/academic-terms";
@@ -111,6 +114,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
+    sharedDeadlineId: null,
     completedAt: null,
     deletedAt: null,
     createdAt: new Date(),
@@ -135,6 +139,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
+    sharedDeadlineId: null,
     completedAt: null,
     deletedAt: null,
     createdAt: new Date(),
@@ -159,6 +164,7 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
+    sharedDeadlineId: null,
     completedAt: null,
     deletedAt: null,
     createdAt: new Date(),
@@ -167,9 +173,11 @@ const INITIAL_DEMO_DEADLINES: Deadline[] = [
 ];
 
 export default function SubjectsPage() {
+  const router = useRouter();
   const [terms, setTerms] = useState<AcademicTerm[]>(INITIAL_DEMO_TERMS);
   const [subjects, setSubjects] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
   const [deadlines, setDeadlines] = useState<Deadline[]>(INITIAL_DEMO_DEADLINES);
+  const [classGroups, setClassGroups] = useState<ClassGroupWithMemberCount[]>([]);
 
   // Term filter state (defaults to current term)
   const currentTerm = useMemo(() => resolveCurrentTerm(terms), [terms]);
@@ -185,6 +193,14 @@ export default function SubjectsPage() {
   const [selectedSubjectDetail, setSelectedSubjectDetail] = useState<Subject | null>(null);
   const [isSubjectDetailOpen, setIsSubjectDetailOpen] = useState(false);
   const [isAddDeadlineOpen, setIsAddDeadlineOpen] = useState(false);
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [groupSubjectId, setGroupSubjectId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    getClassGroupsAction().then((res) => {
+      if (res.data) setClassGroups(res.data);
+    });
+  }, []);
 
   // Term lookup map
   const termMap = useMemo(() => {
@@ -218,6 +234,16 @@ export default function SubjectsPage() {
 
   const handleAddDeadlineForSubject = () => {
     setIsAddDeadlineOpen(true);
+  };
+
+  const handleShareWithClassmates = (subject: Subject) => {
+    const existingGroup = classGroups.find((g) => g.mySubjectId === subject.id);
+    if (existingGroup) {
+      router.push(`/groups/${existingGroup.group.id}`);
+    } else {
+      setGroupSubjectId(subject.id);
+      setIsCreateGroupOpen(true);
+    }
   };
 
   return (
@@ -371,6 +397,12 @@ export default function SubjectsPage() {
         onClose={() => setIsSubjectDetailOpen(false)}
         onAddDeadline={handleAddDeadlineForSubject}
         onOpenDeadlineDetail={() => {}}
+        mappedGroupId={
+          selectedSubjectDetail
+            ? classGroups.find((g) => g.mySubjectId === selectedSubjectDetail.id)?.group.id
+            : null
+        }
+        onShareWithClassmates={handleShareWithClassmates}
       />
 
       {/* Add / Edit Subject Dialog */}
@@ -405,6 +437,20 @@ export default function SubjectsPage() {
         subjects={subjects}
         onSuccess={(newDeadline) => {
           setDeadlines((prev) => [newDeadline, ...prev]);
+        }}
+      />
+
+      {/* Create Class Group Dialog */}
+      <CreateClassGroupDialog
+        isOpen={isCreateGroupOpen}
+        onClose={() => setIsCreateGroupOpen(false)}
+        subjects={subjects}
+        preselectedSubjectId={groupSubjectId}
+        onSuccess={(newGroupId) => {
+          getClassGroupsAction().then((res) => {
+            if (res.data) setClassGroups(res.data);
+          });
+          router.push(`/groups/${newGroupId}`);
         }}
       />
     </div>

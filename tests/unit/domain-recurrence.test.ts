@@ -87,6 +87,7 @@ describe("Recurrence Engine & Materialized Lazy Generation", () => {
       links: [],
       recurrenceRuleId: "rule-1",
       originalOccurrenceDate: "2026-10-05",
+      sharedDeadlineId: null,
       completedAt: null,
       deletedAt: null,
     };

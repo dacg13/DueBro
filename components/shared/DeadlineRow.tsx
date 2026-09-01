@@ -16,6 +16,7 @@ import {
   Upload,
   BookMarked,
   Clock,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -109,7 +110,7 @@ export function DeadlineRow({
       </div>
 
       {/* Title */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex items-center gap-1.5">
         <span
           className={cn(
             "text-sm font-medium text-signal-white truncate block",
@@ -118,6 +119,12 @@ export function DeadlineRow({
         >
           {deadline.title}
         </span>
+        {/* Shared indicator */}
+        {deadline.sharedDeadlineId && (
+          <span title="Shared deadline" className="shrink-0 flex items-center">
+            <Users className="w-3.5 h-3.5 text-accent" />
+          </span>
+        )}
       </div>
 
 

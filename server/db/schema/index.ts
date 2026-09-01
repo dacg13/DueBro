@@ -7,3 +7,5 @@ export * from "./recurrence-exceptions";
 export * from "./subtasks";
 export * from "./reminders";
 export * from "./notifications";
+export * from "./friends";
+export * from "./class-groups";

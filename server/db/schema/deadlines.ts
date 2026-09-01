@@ -3,26 +3,24 @@ import { users } from "./users";
 import { academicTerms } from "./academic-terms";
 import { subjects } from "./subjects";
 import { recurrenceRules } from "./recurrence-rules";
+import { sharedDeadlines } from "./class-groups";
+import {
+  deadlineTypeEnum,
+  type DeadlineType,
+  priorityEnum,
+  type Priority,
+  deadlineStatusEnum,
+  type DeadlineStatus,
+} from "./deadline-types";
 
-export const deadlineTypeEnum = [
-  "assignment",
-  "project",
-  "exam",
-  "quiz",
-  "presentation",
-  "lab",
-  "reading",
-  "submission",
-  "study_session",
-  "other",
-] as const;
-export type DeadlineType = (typeof deadlineTypeEnum)[number];
-
-export const priorityEnum = ["low", "medium", "high", "critical"] as const;
-export type Priority = (typeof priorityEnum)[number];
-
-export const deadlineStatusEnum = ["not_started", "in_progress", "completed", "overdue"] as const;
-export type DeadlineStatus = (typeof deadlineStatusEnum)[number];
+export {
+  deadlineTypeEnum,
+  type DeadlineType,
+  priorityEnum,
+  type Priority,
+  deadlineStatusEnum,
+  type DeadlineStatus,
+};
 
 export const deadlines = pgTable(
   "deadlines",
@@ -50,6 +48,8 @@ export const deadlines = pgTable(
     recurrenceRuleId: uuid("recurrence_rule_id")
       .references(() => recurrenceRules.id, { onDelete: "set null" }),
     originalOccurrenceDate: date("original_occurrence_date"), // For materialized recurring instances
+    sharedDeadlineId: uuid("shared_deadline_id")
+      .references(() => sharedDeadlines.id, { onDelete: "set null" }), // Links fanned-out copies to shared origin
     completedAt: timestamp("completed_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }), // Soft delete support
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -61,6 +61,7 @@ export const deadlines = pgTable(
     index("deadlines_subject_date_idx").on(table.subjectId, table.dueDate),
     index("deadlines_user_status_idx").on(table.userId, table.status),
     index("deadlines_recurrence_instance_idx").on(table.recurrenceRuleId, table.originalOccurrenceDate),
+    index("deadlines_shared_deadline_idx").on(table.sharedDeadlineId),
   ]
 );
 

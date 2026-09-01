@@ -8,6 +8,13 @@
       "when": 1788162721969,
       "tag": "0000_busy_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788277239274,
+      "tag": "0001_burly_annihilus",
+      "breakpoints": true
     }
   ]
 }

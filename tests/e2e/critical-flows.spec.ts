@@ -1,6 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("DueBro Critical User Flows (PRODUCT_PRD.md §26)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      sessionStorage.setItem("duebro_splash_seen", "true");
+    });
+  });
+
   test("Flow 1: Quick Capture bare-text save with zero required fields and 1-tap triage", async ({
     page,
   }) => {

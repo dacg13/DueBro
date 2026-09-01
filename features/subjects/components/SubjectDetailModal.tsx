@@ -9,7 +9,7 @@ import { Modal } from "@/components/ui/modal";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { DeadlineRow } from "@/components/shared/DeadlineRow";
-import { Plus, CheckCircle2, BookOpen, Layers } from "lucide-react";
+import { Plus, CheckCircle2, BookOpen, Layers, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SubjectDetailModalProps {
@@ -20,6 +20,8 @@ interface SubjectDetailModalProps {
   onClose: () => void;
   onAddDeadline: (subjectId: string) => void;
   onOpenDeadlineDetail: (deadline: Deadline) => void;
+  mappedGroupId?: string | null;
+  onShareWithClassmates?: (subject: Subject) => void;
 }
 
 export function SubjectDetailModal({
@@ -30,6 +32,8 @@ export function SubjectDetailModal({
   onClose,
   onAddDeadline,
   onOpenDeadlineDetail,
+  mappedGroupId,
+  onShareWithClassmates,
 }: SubjectDetailModalProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isMobile, setIsMobile] = useState(false);
@@ -68,7 +72,7 @@ export function SubjectDetailModal({
   const content = (
     <div className="space-y-6">
       {/* Subject Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
           <span
             className="w-5 h-5 rounded-full shrink-0 shadow-sm"
@@ -86,17 +90,32 @@ export function SubjectDetailModal({
           </div>
         </div>
 
-        <Button
-          size="sm"
-          onClick={() => {
-            onClose();
-            onAddDeadline(subject.id);
-          }}
-          className="gap-1.5 shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Add Deadline
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              onClose();
+              onShareWithClassmates?.(subject);
+            }}
+            className="gap-1.5 shrink-0"
+          >
+            <Users className="w-4 h-4" />
+            {mappedGroupId ? "View Class Group" : "Share with Classmates"}
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={() => {
+              onClose();
+              onAddDeadline(subject.id);
+            }}
+            className="gap-1.5 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Add Deadline
+          </Button>
+        </div>
       </div>
 
       {/* Metrics Row */}

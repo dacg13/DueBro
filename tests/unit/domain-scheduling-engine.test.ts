@@ -24,6 +24,7 @@ describe("Smart Planning & Scheduling Engine (V1.5)", () => {
     links: [],
     recurrenceRuleId: null,
     originalOccurrenceDate: null,
+    sharedDeadlineId: null,
     completedAt: null,
     deletedAt: null,
     createdAt: new Date(),

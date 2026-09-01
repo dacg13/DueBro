@@ -16,6 +16,8 @@ export const users = pgTable("users", {
     exam: { push: true, email: true },
     digest: { push: false, email: false },
     workload: { push: true, email: false },
+    shared_deadline_added: { push: true, email: true },
+    shared_deadline_edited: { push: false, email: false },
   }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
