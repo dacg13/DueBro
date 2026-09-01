@@ -222,11 +222,11 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-11 mt-2 bg-accent hover:bg-accent/90 disabled:opacity-50 text-white font-medium text-sm rounded-xl inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          className="w-full h-11 mt-2 bg-signal-white hover:bg-mist-100 disabled:opacity-50 text-void-950 font-bold text-sm rounded-xl inline-flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_20px_rgba(250,250,252,0.25)] hover:shadow-[0_0_28px_rgba(250,250,252,0.4)]"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin text-void-950" />
               Creating account...
             </>
           ) : (
