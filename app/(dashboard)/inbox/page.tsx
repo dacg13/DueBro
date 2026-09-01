@@ -1,183 +1,82 @@
 "use client";
 
-import { useState } from "react";
-import { type InAppNotification, type Deadline, type Subject } from "@/types";
-import { markNotificationReadAction, markAllNotificationsReadAction } from "@/server/actions/reminders";
+import { useState, useMemo, useEffect } from "react";
+import { type Deadline, type Subject, type InAppNotification } from "@/types";
 import { QuickCaptureWidget } from "@/features/inbox/components/QuickCaptureWidget";
 import { InboxTriageCard } from "@/features/inbox/components/InboxTriageCard";
 import { DeadlineDetailModal } from "@/features/deadlines/components/DeadlineDetailModal";
 import { AddDeadlineDialog } from "@/features/deadlines/components/AddDeadlineDialog";
+import { getDeadlinesAction } from "@/server/actions/deadlines";
+import { getSubjectsAction } from "@/server/actions/subjects";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
 import {
+  Inbox as InboxIcon,
   Bell,
   Clock,
   CheckCheck,
-  Inbox as InboxIcon,
+  Loader2,
 } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-
-// Initial demonstration data
-const INITIAL_DEMO_SUBJECTS: Subject[] = [
-  {
-    id: "sub-cs101",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "CS101 Algorithms",
-    color: "#5B6EF5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-math201",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "MATH201 Linear Algebra",
-    color: "#2DB5A5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-phys150",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "PHYS150 Mechanics",
-    color: "#E0A030",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-const INITIAL_CAPTURED_DEADLINES: Deadline[] = [
-  {
-    id: "dl-inbox-1",
-    userId: "demo-user",
-    subjectId: null, // Untriaged!
-    termId: null,
-    title: "Read research paper on Transformers & Attention",
-    type: "reading",
-    dueDate: new Date().toISOString().split("T")[0],
-    dueTime: "17:00",
-    priority: "medium",
-    status: "not_started",
-    progress: 0,
-    estimatedEffortHours: 1.5,
-    location: null,
-    notes: "Review section 3 on multi-head attention",
-    tags: ["reading"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-inbox-2",
-    userId: "demo-user",
-    subjectId: null, // Untriaged!
-    termId: null,
-    title: "Review vector space theorems for upcoming quiz",
-    type: "quiz",
-    dueDate: null, // No date set!
-    dueTime: null,
-    priority: "high",
-    status: "not_started",
-    progress: 0,
-    estimatedEffortHours: 2.0,
-    location: null,
-    notes: null,
-    tags: [],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-const INITIAL_DEMO_NOTIFICATIONS: InAppNotification[] = [
-  {
-    id: "notif-1",
-    userId: "demo-user",
-    deadlineId: "dl-1",
-    reminderId: "rem-1",
-    title: "Reminder: [CS101] Dynamic Programming Problem Set 4",
-    body: "Due tonight at 23:59. Priority: high.",
-    channel: "push",
-    status: "queued",
-    sentAt: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
-    createdAt: new Date(),
-  },
-  {
-    id: "notif-2",
-    userId: "demo-user",
-    deadlineId: "dl-2",
-    reminderId: "rem-2",
-    title: "Upcoming Exam: [MATH201] Midterm Exam: Vector Spaces",
-    body: "Exam is in 3 days. High priority countdown alert.",
-    channel: "push",
-    status: "queued",
-    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3 hours ago
-    createdAt: new Date(),
-  },
-  {
-    id: "notif-3",
-    userId: "demo-user",
-    deadlineId: "dl-3",
-    reminderId: "rem-3",
-    title: "Reminder: [PHYS150] Lab Report 3",
-    body: "Due tomorrow at 17:00. Priority: medium.",
-    channel: "email",
-    status: "sent",
-    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    createdAt: new Date(),
-  },
-];
 
 export default function InboxPage() {
   const [activeMainTab, setActiveMainTab] = useState<"capture" | "notifications">("capture");
-  const [capturedDeadlines, setCapturedDeadlines] = useState<Deadline[]>(INITIAL_CAPTURED_DEADLINES);
-  const [subjects] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
-  const [notificationsList, setNotificationsList] = useState<InAppNotification[]>(INITIAL_DEMO_NOTIFICATIONS);
+  const [capturedDeadlines, setCapturedDeadlines] = useState<Deadline[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [notificationsList, setNotificationsList] = useState<InAppNotification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Modals state
   const [selectedDeadline, setSelectedDeadline] = useState<Deadline | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  const unreadNotifCount = notificationsList.filter((n) => n.status === "queued").length;
-  const untriagedCount = capturedDeadlines.filter((d) => !d.subjectId || !d.dueDate).length;
+  useEffect(() => {
+    Promise.all([getDeadlinesAction(), getSubjectsAction()]).then(([dlRes, subRes]) => {
+      if (dlRes.data) {
+        // Items in inbox are uncompleted items without a subject or due date, or recently quick-captured
+        const untriaged = dlRes.data.filter(
+          (d) => !d.deletedAt && d.status !== "completed" && (!d.subjectId || !d.dueDate)
+        );
+        setCapturedDeadlines(untriaged);
+      }
+      if (subRes.data) setSubjects(subRes.data);
+      setIsLoading(false);
+    });
+  }, []);
 
-  const handleMarkAsRead = async (id: string) => {
+  const untriagedCount = useMemo(() => {
+    return capturedDeadlines.filter((d) => !d.subjectId || !d.dueDate).length;
+  }, [capturedDeadlines]);
+
+  const unreadNotifCount = useMemo(() => {
+    return notificationsList.filter((n) => n.status === "queued").length;
+  }, [notificationsList]);
+
+  const handleMarkAsRead = (id: string) => {
     setNotificationsList((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, status: "sent", sentAt: new Date() } : n))
+      prev.map((n) => (n.id === id ? { ...n, status: "sent" } : n))
     );
-    await markNotificationReadAction(id);
   };
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = () => {
     setNotificationsList((prev) =>
-      prev.map((n) => ({ ...n, status: "sent", sentAt: new Date() }))
+      prev.map((n) => ({ ...n, status: "sent" }))
     );
-    await markAllNotificationsReadAction();
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-6 h-6 animate-spin text-mist-200" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl space-y-6">
-      {/* Header */}
+    <div className="space-y-6">
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">

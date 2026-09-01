@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { type Deadline, type Subject } from "@/types";
 import { assessAllDeadlinesRisk } from "@/server/domain/risk";
 import { getDaysRemaining } from "@/server/domain/deadlines";
-import { toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
+import { getDeadlinesAction, toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
+import { getSubjectsAction } from "@/server/actions/subjects";
 import { TodayFocusCard } from "@/features/today/components/TodayFocusCard";
 import { DeadlineCard } from "@/components/shared/DeadlineCard";
 import { DeadlineDetailModal } from "@/features/deadlines/components/DeadlineDetailModal";
@@ -19,157 +20,27 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
-// Initial demonstration data representing an active semester workload
-const INITIAL_DEMO_SUBJECTS: Subject[] = [
-  {
-    id: "sub-cs101",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "CS101 Algorithms",
-    color: "#5B6EF5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-math201",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "MATH201 Linear Algebra",
-    color: "#2DB5A5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-phys150",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "PHYS150 Mechanics",
-    color: "#E0A030",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-const INITIAL_DEMO_DEADLINES: Deadline[] = [
-  {
-    id: "dl-1",
-    userId: "demo-user",
-    subjectId: "sub-cs101",
-    termId: "term-1",
-    title: "Dynamic Programming Problem Set 4",
-    type: "assignment",
-    dueDate: new Date().toISOString().split("T")[0], // Due Today!
-    dueTime: "23:59",
-    priority: "high",
-    status: "in_progress",
-    progress: 60,
-    estimatedEffortHours: null,
-    location: null,
-    notes: "Submit PDF via Gradescope. Complete memoization analysis for problem 3.",
-    tags: ["homework", "gradescope"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-2",
-    userId: "demo-user",
-    subjectId: "sub-math201",
-    termId: "term-1",
-    title: "Midterm Exam: Vector Spaces & Eigenvalues",
-    type: "exam",
-    dueDate: new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0], // In 3 days (High Risk Exam)
-    dueTime: "10:00",
-    priority: "critical",
-    status: "not_started",
-    progress: 10,
-    estimatedEffortHours: null,
-    location: "Hall B, Room 204",
-    notes: "Closed book exam. 1 sheet handwritten notes permitted.",
-    tags: ["midterm", "exam"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-3",
-    userId: "demo-user",
-    subjectId: "sub-phys150",
-    termId: "term-1",
-    title: "Lab Report 3: Rotational Inertia",
-    type: "lab",
-    dueDate: new Date(Date.now() + 86400000 * 1).toISOString().split("T")[0], // Tomorrow
-    dueTime: "17:00",
-    priority: "medium",
-    status: "not_started",
-    progress: 25,
-    estimatedEffortHours: null,
-    location: "Physics Lab 102",
-    notes: "Include error analysis and uncertainty propagation tables.",
-    tags: ["lab"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-4",
-    userId: "demo-user",
-    subjectId: "sub-cs101",
-    termId: "term-1",
-    title: "Weekly Reading: CLRS Chapter 15",
-    type: "reading",
-    dueDate: new Date(Date.now() - 86400000 * 1).toISOString().split("T")[0], // Overdue!
-    dueTime: "23:59",
-    priority: "low",
-    status: "overdue",
-    progress: 0,
-    estimatedEffortHours: null,
-    location: null,
-    notes: "Pages 359-389.",
-    tags: ["reading"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
 export default function TodayPage() {
-  const [deadlines, setDeadlines] = useState<Deadline[]>(INITIAL_DEMO_DEADLINES);
-  const [subjects] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
+  const [deadlines, setDeadlines] = useState<Deadline[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Modals state
   const [selectedDeadline, setSelectedDeadline] = useState<Deadline | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
+
+  useEffect(() => {
+    Promise.all([getDeadlinesAction(), getSubjectsAction()]).then(([dlRes, subRes]) => {
+      if (dlRes.data) setDeadlines(dlRes.data);
+      if (subRes.data) setSubjects(subRes.data);
+      setIsLoading(false);
+    });
+  }, []);
 
   // Subject lookup map
   const subjectMap = useMemo(() => {
@@ -246,6 +117,14 @@ export default function TodayPage() {
   };
 
   const todayDateString = format(new Date(), "EEEE, MMMM d, yyyy");
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-6 h-6 animate-spin text-mist-200" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -332,7 +211,7 @@ export default function TodayPage() {
           <EmptyState
             icon={CheckCircle2}
             title="All clear for today!"
-            description="You have completed all scheduled tasks. Take a break or add your next assignment."
+            description="You have no pending deadlines scheduled for today. Add your next assignment or exam."
             actionLabel="Add Deadline"
             onAction={() => setIsAddOpen(true)}
           />

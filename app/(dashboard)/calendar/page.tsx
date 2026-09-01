@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { type Deadline, type Subject } from "@/types";
 import { assessAllDeadlinesRisk } from "@/server/domain/risk";
-import { toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
+import { getDeadlinesAction, toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
+import { getSubjectsAction } from "@/server/actions/subjects";
 import { MonthCalendarGrid } from "@/features/calendar/components/MonthCalendarGrid";
 import { WeekCalendarView } from "@/features/calendar/components/WeekCalendarView";
 import { CalendarDayDrawer } from "@/features/calendar/components/CalendarDayDrawer";
@@ -24,156 +25,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Initial demonstration data
-const INITIAL_DEMO_SUBJECTS: Subject[] = [
-  {
-    id: "sub-cs101",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "CS101 Algorithms",
-    color: "#5B6EF5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-math201",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "MATH201 Linear Algebra",
-    color: "#2DB5A5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-phys150",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "PHYS150 Mechanics",
-    color: "#E0A030",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-const INITIAL_DEMO_DEADLINES: Deadline[] = [
-  {
-    id: "dl-1",
-    userId: "demo-user",
-    subjectId: "sub-cs101",
-    termId: "term-1",
-    title: "Dynamic Programming Problem Set 4",
-    type: "assignment",
-    dueDate: new Date().toISOString().split("T")[0],
-    dueTime: "23:59",
-    priority: "high",
-    status: "in_progress",
-    progress: 50,
-    estimatedEffortHours: 4.0,
-    location: null,
-    notes: null,
-    tags: [],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-2",
-    userId: "demo-user",
-    subjectId: "sub-math201",
-    termId: "term-1",
-    title: "Midterm Exam: Vector Spaces",
-    type: "exam",
-    dueDate: new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0],
-    dueTime: "10:00",
-    priority: "critical",
-    status: "not_started",
-    progress: 10,
-    estimatedEffortHours: 8.0,
-    location: "Hall B, Room 204",
-    notes: null,
-    tags: [],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-3",
-    userId: "demo-user",
-    subjectId: "sub-phys150",
-    termId: "term-1",
-    title: "Lab Report 3",
-    type: "lab",
-    dueDate: new Date(Date.now() + 86400000 * 1).toISOString().split("T")[0],
-    dueTime: "17:00",
-    priority: "medium",
-    status: "not_started",
-    progress: 25,
-    estimatedEffortHours: 2.5,
-    location: "Physics Lab 102",
-    notes: null,
-    tags: [],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-4",
-    userId: "demo-user",
-    subjectId: "sub-cs101",
-    termId: "term-1",
-    title: "Graph Algorithms Problem Set 5",
-    type: "assignment",
-    dueDate: new Date(Date.now() + 86400000 * 10).toISOString().split("T")[0],
-    dueTime: "23:59",
-    priority: "high",
-    status: "not_started",
-    progress: 0,
-    estimatedEffortHours: 5.0,
-    location: null,
-    notes: null,
-    tags: [],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("all");
 
-  const [deadlines, setDeadlines] = useState<Deadline[]>(INITIAL_DEMO_DEADLINES);
-  const [subjects] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
+  const [deadlines, setDeadlines] = useState<Deadline[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Modals state
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
@@ -184,25 +47,53 @@ export default function CalendarPage() {
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  // Subject lookup map
+  useEffect(() => {
+    Promise.all([getDeadlinesAction(), getSubjectsAction()]).then(([dlRes, subRes]) => {
+      if (dlRes.data) setDeadlines(dlRes.data);
+      if (subRes.data) setSubjects(subRes.data);
+      setIsLoading(false);
+    });
+  }, []);
+
+  // Quick lookup map
   const subjectMap = useMemo(() => {
     const map = new Map<string, Subject>();
     subjects.forEach((s) => map.set(s.id, s));
     return map;
   }, [subjects]);
 
-  // Risk Engine batch evaluations
   const riskMap = useMemo(() => {
     return assessAllDeadlinesRisk(deadlines);
   }, [deadlines]);
 
-  // Filter deadlines by subject
+  // Filtered by subject
   const filteredDeadlines = useMemo(() => {
-    if (selectedSubjectId === "all") return deadlines;
-    return deadlines.filter((d) => d.subjectId === selectedSubjectId);
+    const active = deadlines.filter((d) => !d.deletedAt);
+    if (selectedSubjectId === "all") return active;
+    return active.filter((d) => d.subjectId === selectedSubjectId);
   }, [deadlines, selectedSubjectId]);
 
-  // Navigation handlers
+  // Quick complete toggle with optimistic state update
+  const handleToggleComplete = async (id: string) => {
+    setDeadlines((prev) =>
+      prev.map((d) => {
+        if (d.id === id) {
+          const isNowCompleted = d.status !== "completed";
+          return {
+            ...d,
+            status: isNowCompleted ? "completed" : "not_started",
+            completedAt: isNowCompleted ? new Date() : null,
+            progress: isNowCompleted ? 100 : d.progress,
+          };
+        }
+        return d;
+      })
+    );
+
+    await toggleDeadlineCompleteAction(id);
+  };
+
+  // Month navigation
   const handlePrev = () => {
     if (viewMode === "month") {
       setCurrentDate((prev) => subMonths(prev, 1));
@@ -223,36 +114,22 @@ export default function CalendarPage() {
     setCurrentDate(new Date());
   };
 
+  // Day Drawer opener
   const handleSelectDate = (dateStr: string) => {
     setSelectedDayDate(dateStr);
     setIsDayDrawerOpen(true);
   };
 
-  const handleToggleComplete = async (id: string) => {
-    setDeadlines((prev) =>
-      prev.map((d) => {
-        if (d.id === id) {
-          const isNowCompleted = d.status !== "completed";
-          return {
-            ...d,
-            status: isNowCompleted ? "completed" : "not_started",
-            completedAt: isNowCompleted ? new Date() : null,
-            progress: isNowCompleted ? 100 : d.progress,
-          };
-        }
-        return d;
-      })
-    );
-    await toggleDeadlineCompleteAction(id);
-  };
-
-  const handleOpenReschedule = (dl: Deadline) => {
-    setRescheduleDeadline(dl);
+  // Reschedule handler
+  const handleOpenReschedule = (deadline: Deadline) => {
+    setRescheduleDeadline(deadline);
     setIsRescheduleOpen(true);
   };
 
   const handleRescheduleSuccess = (updated: Deadline) => {
-    setDeadlines((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
+    setDeadlines((prev) =>
+      prev.map((d) => (d.id === updated.id ? updated : d))
+    );
   };
 
   const dayDeadlines = useMemo(() => {
@@ -270,6 +147,14 @@ export default function CalendarPage() {
       return `${format(mon, "MMM d")} – ${format(sun, "MMM d, yyyy")}`;
     }
   }, [currentDate, viewMode]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-6 h-6 animate-spin text-mist-200" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -359,43 +244,45 @@ export default function CalendarPage() {
       </div>
 
       {/* Subject Filter Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider shrink-0 mr-1">
-          Courses:
-        </span>
-        <button
-          type="button"
-          onClick={() => setSelectedSubjectId("all")}
-          className={cn(
-            "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer",
-            selectedSubjectId === "all"
-              ? "bg-accent-subtle text-accent font-bold border border-accent/30"
-              : "bg-bg-surface text-text-secondary hover:text-text-primary border border-border-default"
-          )}
-        >
-          All Subjects
-        </button>
-
-        {subjects.map((sub) => (
+      {subjects.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider shrink-0 mr-1">
+            Courses:
+          </span>
           <button
-            key={sub.id}
             type="button"
-            onClick={() => setSelectedSubjectId(sub.id)}
+            onClick={() => setSelectedSubjectId("all")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer",
-              selectedSubjectId === sub.id
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer",
+              selectedSubjectId === "all"
                 ? "bg-accent-subtle text-accent font-bold border border-accent/30"
                 : "bg-bg-surface text-text-secondary hover:text-text-primary border border-border-default"
             )}
           >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: sub.color }}
-            />
-            <span>{sub.name}</span>
+            All Subjects
           </button>
-        ))}
-      </div>
+
+          {subjects.map((sub) => (
+            <button
+              key={sub.id}
+              type="button"
+              onClick={() => setSelectedSubjectId(sub.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap cursor-pointer",
+                selectedSubjectId === sub.id
+                  ? "bg-accent-subtle text-accent font-bold border border-accent/30"
+                  : "bg-bg-surface text-text-secondary hover:text-text-primary border border-border-default"
+              )}
+            >
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: sub.color }}
+              />
+              <span>{sub.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Main Calendar View: Month vs Week */}
       {viewMode === "month" ? (
@@ -443,7 +330,7 @@ export default function CalendarPage() {
         }}
       />
 
-      {/* Reschedule Deadline Modal (WCAG 2.2 Compliant Dragging Alternative) */}
+      {/* Reschedule Deadline Modal */}
       <RescheduleDeadlineModal
         deadline={rescheduleDeadline}
         subject={rescheduleDeadline?.subjectId ? subjectMap.get(rescheduleDeadline.subjectId) : null}

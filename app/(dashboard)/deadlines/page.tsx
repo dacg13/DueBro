@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { type Deadline, type Subject } from "@/types";
 import { DeadlineRow } from "@/components/shared/DeadlineRow";
 import { DeadlineCard } from "@/components/shared/DeadlineCard";
@@ -9,155 +9,17 @@ import { DeadlineDetailModal } from "@/features/deadlines/components/DeadlineDet
 import { AddDeadlineDialog } from "@/features/deadlines/components/AddDeadlineDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
-import { toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
+import { getDeadlinesAction, toggleDeadlineCompleteAction } from "@/server/actions/deadlines";
+import { getSubjectsAction } from "@/server/actions/subjects";
 import { sortDeadlines, isDeadlineOverdue } from "@/server/domain/deadlines";
 import { assessAllDeadlinesRisk } from "@/server/domain/risk";
-import { CheckSquare, Plus, LayoutList, LayoutGrid } from "lucide-react";
+import { CheckSquare, Plus, LayoutList, LayoutGrid, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Initial demonstration data matching real academic course load
-const INITIAL_DEMO_SUBJECTS: Subject[] = [
-  {
-    id: "sub-cs101",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "CS101 Algorithms",
-    color: "#5B6EF5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-math201",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "MATH201 Linear Algebra",
-    color: "#2DB5A5",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "sub-phys150",
-    termId: "term-1",
-    userId: "demo-user",
-    name: "PHYS150 Mechanics",
-    color: "#E0A030",
-    archived: false,
-    archivedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-const INITIAL_DEMO_DEADLINES: Deadline[] = [
-  {
-    id: "dl-1",
-    userId: "demo-user",
-    subjectId: "sub-cs101",
-    termId: "term-1",
-    title: "Dynamic Programming Problem Set 4",
-    type: "assignment",
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0], // In 2 days
-    dueTime: "23:59",
-    priority: "high",
-    status: "in_progress",
-    progress: 50,
-    estimatedEffortHours: 4.5,
-    location: null,
-    notes: "Submit PDF via Gradescope. Cover memoization and bottom-up DP implementations.",
-    tags: ["homework", "gradescope"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-2",
-    userId: "demo-user",
-    subjectId: "sub-math201",
-    termId: "term-1",
-    title: "Midterm Examination: Vector Spaces & Eigenvalues",
-    type: "exam",
-    dueDate: new Date(Date.now() + 86400000 * 5).toISOString().split("T")[0], // In 5 days
-    dueTime: "10:00",
-    priority: "critical",
-    status: "not_started",
-    progress: 0,
-    estimatedEffortHours: 8.0,
-    location: "Hall B, Room 204",
-    notes: "Closed book exam. 1 sheet of handwritten notes allowed.",
-    tags: ["midterm", "exam"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-3",
-    userId: "demo-user",
-    subjectId: "sub-phys150",
-    termId: "term-1",
-    title: "Lab Report 3: Rotational Inertia",
-    type: "lab",
-    dueDate: new Date(Date.now() + 86400000 * 1).toISOString().split("T")[0], // Tomorrow
-    dueTime: "17:00",
-    priority: "medium",
-    status: "not_started",
-    progress: 25,
-    estimatedEffortHours: 2.0,
-    location: "Physics Lab 102",
-    notes: "Include error analysis table and uncertainty propagation formulas.",
-    tags: ["lab"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "dl-4",
-    userId: "demo-user",
-    subjectId: "sub-cs101",
-    termId: "term-1",
-    title: "Weekly Reading: CLRS Chapter 15",
-    type: "reading",
-    dueDate: new Date(Date.now() - 86400000 * 1).toISOString().split("T")[0], // Overdue
-    dueTime: "23:59",
-    priority: "low",
-    status: "overdue",
-    progress: 0,
-    estimatedEffortHours: 1.5,
-    location: null,
-    notes: "Read pages 359-389 before lecture.",
-    tags: ["reading"],
-    links: [],
-    recurrenceRuleId: null,
-    originalOccurrenceDate: null,
-    sharedDeadlineId: null,
-    completedAt: null,
-    deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
 export default function DeadlinesPage() {
-  const [deadlinesList, setDeadlinesList] = useState<Deadline[]>(INITIAL_DEMO_DEADLINES);
-  const [subjectsList] = useState<Subject[]>(INITIAL_DEMO_SUBJECTS);
+  const [deadlinesList, setDeadlinesList] = useState<Deadline[]>([]);
+  const [subjectsList, setSubjectsList] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filters & Sorting state
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -172,6 +34,14 @@ export default function DeadlinesPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
+
+  useEffect(() => {
+    Promise.all([getDeadlinesAction(), getSubjectsAction()]).then(([dlRes, subRes]) => {
+      if (dlRes.data) setDeadlinesList(dlRes.data);
+      if (subRes.data) setSubjectsList(subRes.data);
+      setIsLoading(false);
+    });
+  }, []);
 
   // Filter & sort computation
   const filteredDeadlines = useMemo(() => {
@@ -248,6 +118,14 @@ export default function DeadlinesPage() {
   const riskMap = useMemo(() => {
     return assessAllDeadlinesRisk(deadlinesList);
   }, [deadlinesList]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-6 h-6 animate-spin text-mist-200" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
